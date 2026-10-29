@@ -163,10 +163,11 @@ export class OrderController {
   }
 
   static async createOrder(req: AuthRequest, res: Response): Promise<void> {
-    const { shopId, orderType, tableNumber, addressId, items, notes } = req.body as {
+    const { shopId, orderType, tableNumber, pickupTime, addressId, items, notes } = req.body as {
       shopId: string;
       orderType: OrderType;
       tableNumber?: string;
+      pickupTime?: string;
       addressId?: string;
       items: OrderItemInput[];
       notes?: string;
@@ -296,6 +297,7 @@ export class OrderController {
           addressId,
           orderType,
           tableNumber,
+          pickupTime: pickupTime ? new Date(pickupTime) : undefined,
           subtotal,
           tax,
           deliveryFee,

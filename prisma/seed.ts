@@ -44,25 +44,76 @@ const bogorOutlets: OutletSeed[] = [
   { name: 'Eloka Dramaga', address: 'Jl. Raya Dramaga No. 40, Dramaga, Kabupaten Bogor', latitude: -6.5568, longitude: 106.7334, openTime: '10:00', closeTime: '20:00' },
 ];
 
-const makassarMenus = [
-  ['Menu Utama', [
-    ['Es Kopi Susu Gula Aren', 'Kopi susu dengan gula aren khas Makassar', 18000],
-    ['Pisang Epe Keju', 'Pisang bakar pipih dengan saus gula aren dan keju', 22000],
-    ['Nasi Goreng Coto', 'Nasi goreng berbumbu rempah khas Makassar', 28000],
-    ['Es Pisang Ijo', 'Pisang kukus dengan bubur sumsum dan sirup merah', 20000],
-    ['Teh Tarik', 'Teh susu tarik dengan rasa manis lembut', 15000],
-  ]],
+const menuCategories = ['Kopi', 'Minuman Segar', 'Makanan', 'Camilan'] as const;
+
+const menuCatalog = [
+  ['Es Kopi Susu Gula Aren', 'Kopi susu dengan gula aren khas Eloka', 18000],
+  ['Americano Citrus', 'Kopi hitam dengan sentuhan jeruk segar', 20000],
+  ['Caffe Latte Pandan', 'Latte lembut dengan aroma pandan', 26000],
+  ['Mocha Kacang', 'Kopi cokelat dengan taburan kacang', 28000],
+  ['Matcha Latte', 'Matcha premium dengan susu segar', 28000],
+  ['Es Teh Markisa', 'Teh dingin dengan sirup markisa', 16000],
+  ['Soda Lychee Mint', 'Soda leci dengan daun mint', 22000],
+  ['Jus Alpukat Kopi', 'Alpukat creamy dengan espresso', 25000],
+  ['Nasi Goreng Rempah', 'Nasi goreng dengan bumbu rempah Nusantara', 29000],
+  ['Mie Goreng Cabe Ijo', 'Mie goreng gurih dengan cabai hijau', 27000],
+  ['Ayam Sambal Matah', 'Ayam panggang dengan sambal matah', 34000],
+  ['Rice Bowl Teriyaki', 'Nasi hangat dengan ayam teriyaki', 32000],
+  ['Pisang Epe Gula Aren', 'Pisang bakar khas dengan saus gula aren', 22000],
+  ['Roti Bakar Srikaya', 'Roti panggang dengan selai srikaya', 20000],
+  ['Kentang Keju', 'Kentang goreng dengan saus keju', 24000],
+  ['Tahu Crispy Sambal', 'Tahu renyah dengan sambal pilihan', 18000],
+  ['Croissant Butter', 'Pastry renyah dengan butter premium', 23000],
+  ['Pancake Buah', 'Pancake lembut dengan buah musiman', 30000],
+  ['Puding Cokelat', 'Puding cokelat dengan saus vanilla', 19000],
+  ['Es Pisang Ijo Eloka', 'Pisang ijo dengan bubur sumsum dan sirup', 24000],
 ] as const;
+
+type AddonSeed = [name: string, price: number];
+type VariantSeed = [group: string, option: string, priceAdjust: number];
+
+const menuVariants: Record<number, VariantSeed[]> = {
+  0: [['Size', 'Regular', 0], ['Size', 'Large', 5000], ['Suhu', 'Hot', 0], ['Suhu', 'Ice', 2000]],
+  1: [['Size', 'Regular', 0], ['Size', 'Large', 5000], ['Suhu', 'Hot', 0], ['Suhu', 'Ice', 2000]],
+  2: [['Size', 'Regular', 0], ['Size', 'Large', 5000], ['Suhu', 'Hot', 0], ['Suhu', 'Ice', 2000]],
+  3: [['Size', 'Regular', 0], ['Size', 'Large', 5000], ['Suhu', 'Hot', 0], ['Suhu', 'Ice', 2000]],
+  4: [['Size', 'Regular', 0], ['Size', 'Large', 5000], ['Suhu', 'Hot', 0], ['Suhu', 'Ice', 2000]],
+  5: [['Size', 'Regular', 0], ['Size', 'Large', 4000], ['Suhu', 'Hot', 0], ['Suhu', 'Ice', 1000]],
+  6: [['Size', 'Regular', 0], ['Size', 'Large', 5000]],
+  7: [['Size', 'Regular', 0], ['Size', 'Large', 5000]],
+};
+
+const menuAddons: Record<number, AddonSeed[]> = {
+  0: [['Extra Sugar', 2000], ['Less Sugar', 0], ['Extra Shot', 6000]],
+  1: [['Extra Sugar', 2000], ['Less Sugar', 0], ['Extra Shot', 6000]],
+  2: [['Extra Shot', 6000], ['Sirup Vanilla', 4000], ['Oat Milk', 8000]],
+  3: [['Extra Shot', 6000], ['Whipped Cream', 5000], ['Sirup Hazelnut', 5000]],
+  4: [['Extra Sugar', 2000], ['Less Sugar', 0], ['Oat Milk', 8000]],
+  5: [['Extra Sugar', 2000], ['Less Sugar', 0], ['Irisan Lemon', 3000]],
+  6: [['Extra Lychee', 5000], ['Daun Mint', 2000], ['Es Batu Tambahan', 1000]],
+  7: [['Extra Susu', 4000], ['Less Sugar', 0], ['Chia Seed', 4000]],
+  8: [['Nasi Tambahan', 6000], ['Telur', 6000], ['Sambal Extra', 3000]],
+  9: [['Mie Tambahan', 5000], ['Telur', 6000], ['Cabe Extra', 2000]],
+  10: [['Nasi Tambahan', 6000], ['Sambal Matah Extra', 4000], ['Telur', 6000]],
+  11: [['Nasi Tambahan', 6000], ['Telur', 6000], ['Saus Teriyaki Extra', 4000]],
+  12: [['Keju Parut', 5000], ['Cokelat', 4000], ['Es Krim Vanilla', 7000]],
+  13: [['Butter Extra', 3000], ['Keju', 5000], ['Selai Cokelat', 4000]],
+  14: [['Saus Keju', 5000], ['Saus Sambal', 3000], ['Porsi Besar', 7000]],
+  15: [['Saus Sambal', 3000], ['Saus Keju', 5000], ['Porsi Besar', 6000]],
+  17: [['Madu', 4000], ['Whipped Cream', 5000], ['Pisang Tambahan', 5000]],
+  18: [['Whipped Cream', 5000], ['Saus Cokelat', 4000], ['Kacang Almond', 5000]],
+  19: [['Saus Gula Aren Extra', 4000], ['Keju Parut', 5000], ['Kelapa Parut', 3000]],
+};
 
 async function seedOutlets(outlets: OutletSeed[], region: 'makassar' | 'bogor'): Promise<void> {
   const password = await bcrypt.hash('outlet123', 10);
-  const menuCategory = makassarMenus[0];
-
   for (const [index, outlet] of outlets.entries()) {
     const { name, address, latitude, longitude, openTime, closeTime } = outlet;
     const number = String(index + 1).padStart(2, '0');
     const shopId = `${region}-shop-${number}`;
-    const categoryId = `${region}-category-${number}`;
+    const categoryIds = menuCategories.map(
+      (_category, categoryIndex) => `${region}-category-${number}-${categoryIndex + 1}`,
+    );
 
     await prisma.user.upsert({
       where: { email: `${region}-outlet${number}@elokapesan.com` },
@@ -94,20 +145,33 @@ async function seedOutlets(outlets: OutletSeed[], region: 'makassar' | 'bogor'):
       },
     });
 
-    await prisma.category.upsert({
-      where: { id: categoryId },
-      update: { name: menuCategory[0], shopId },
-      create: {
-        id: categoryId,
-        shopId,
-        name: menuCategory[0],
-        description: 'Menu favorit khas outlet',
-        order: 1,
-      },
-    });
+    for (const [categoryIndex, categoryName] of menuCategories.entries()) {
+      await prisma.category.upsert({
+        where: { id: categoryIds[categoryIndex] },
+        update: { name: categoryName, shopId, isActive: true },
+        create: {
+          id: categoryIds[categoryIndex],
+          shopId,
+          name: categoryName,
+          description: `${categoryName} pilihan ${name}`,
+          order: categoryIndex + 1,
+        },
+      });
+    }
 
-    for (const [menuIndex, [menuName, description, price]] of menuCategory[1].entries()) {
+    for (const [menuIndex, [baseMenuName, baseDescription, price]] of menuCatalog.entries()) {
       const productId = `${region}-product-${number}-${menuIndex + 1}`;
+      const locationName = name.replace(/^Eloka\s+/i, '');
+      const menuName = `${baseMenuName} ${locationName}`;
+      const description = `${baseDescription} di outlet ${name}`;
+      const categoryIndex = menuIndex < 4
+        ? 0
+        : menuIndex < 8
+          ? 1
+          : menuIndex < 13
+            ? 2
+            : 3;
+      const categoryId = categoryIds[categoryIndex];
       await prisma.product.upsert({
         where: { id: productId },
         update: { name: menuName, description, price, categoryId, isAvailable: true },
@@ -118,20 +182,54 @@ async function seedOutlets(outlets: OutletSeed[], region: 'makassar' | 'bogor'):
           description,
           price,
           isAvailable: true,
-          isPopular: menuIndex === 0,
+          isPopular: menuIndex % 5 === 0,
           order: menuIndex + 1,
         },
       });
 
-      if (menuIndex % 2 === 0) {
-        const addons: Array<[string, number]> = [['Tambah Keju', 5000], ['Extra Porsi', 7000]];
-        for (const [addonIndex, [addonName, addonPrice]] of addons.entries()) {
-          await prisma.productAddon.upsert({
-            where: { id: `${productId}-addon-${addonIndex + 1}` },
-            update: { name: addonName, price: addonPrice.toString(), isAvailable: true, productId },
-            create: { id: `${productId}-addon-${addonIndex + 1}`, productId, name: addonName, price: addonPrice.toString(), isAvailable: true },
-          });
-        }
+      const addons = menuAddons[menuIndex] || [];
+
+      const variants = menuVariants[menuIndex] || [];
+      for (let variantIndex = 0; variantIndex < 4; variantIndex++) {
+        const variant = variants[variantIndex];
+        await prisma.productVariant.upsert({
+          where: { id: `${productId}-variant-${variantIndex + 1}` },
+          update: {
+            name: variant?.[0] || `Pilihan ${variantIndex + 1}`,
+            optionName: variant?.[1] || `Tidak tersedia`,
+            priceAdjust: (variant?.[2] || 0).toString(),
+            isAvailable: Boolean(variant),
+            productId,
+          },
+          create: {
+            id: `${productId}-variant-${variantIndex + 1}`,
+            productId,
+            name: variant?.[0] || `Pilihan ${variantIndex + 1}`,
+            optionName: variant?.[1] || `Tidak tersedia`,
+            priceAdjust: (variant?.[2] || 0).toString(),
+            isAvailable: Boolean(variant),
+          },
+        });
+      }
+
+      for (let addonIndex = 0; addonIndex < 4; addonIndex++) {
+        const addon = addons[addonIndex];
+        await prisma.productAddon.upsert({
+          where: { id: `${productId}-addon-${addonIndex + 1}` },
+          update: {
+            name: addon?.[0] || `Add-on ${addonIndex + 1}`,
+            price: (addon?.[1] || 0).toString(),
+            isAvailable: Boolean(addon),
+            productId,
+          },
+          create: {
+            id: `${productId}-addon-${addonIndex + 1}`,
+            productId,
+            name: addon?.[0] || `Add-on ${addonIndex + 1}`,
+            price: (addon?.[1] || 0).toString(),
+            isAvailable: Boolean(addon),
+          },
+        });
       }
     }
   }
