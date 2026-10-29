@@ -37,6 +37,10 @@ export const createApp = (): Express => {
     app.use(morgan('combined'));
   }
 
+  app.get('/favicon.ico', (_req, res) => {
+    res.status(204).end();
+  });
+
   // API Routes
   app.use(`/api/${config.apiVersion}`, routes);
 
