@@ -10,6 +10,7 @@ const router = Router();
 router.post(
   '/',
   [
+    authenticate,
     body('shopId').notEmpty().withMessage('Shop ID is required'),
     body('orderType').isIn(['DINE_IN', 'TAKEAWAY', 'DELIVERY']).withMessage('Invalid order type'),
     body('tableNumber').optional().notEmpty().withMessage('Table number cannot be empty'),
