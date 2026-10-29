@@ -43,7 +43,10 @@ export const config = {
 
   // CORS
   cors: {
-    origin: process.env.CORS_ORIGIN || '*',
+    origins: (process.env.CORS_ORIGIN || 'https://eloka-pesan.vercel.app')
+      .split(',')
+      .map((origin) => origin.trim())
+      .filter(Boolean),
   },
 
   // Rate Limiting
