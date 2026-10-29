@@ -52,6 +52,32 @@ Server akan berjalan di: **http://localhost:3000**
 
 ---
 
+## 🚀 Deploy ke Vercel
+
+Backend ini memakai `src/index.ts` sebagai serverless handler Vercel. Saat membuat
+project baru di Vercel, pilih folder `backend` sebagai **Root Directory** jika
+repository juga berisi frontend.
+
+Tambahkan environment variables berikut di Vercel untuk environment **Production**:
+
+```text
+NODE_ENV=production
+DATABASE_URL=<pooled Neon connection string>
+REDIS_URL=<production Redis URL>
+JWT_SECRET=<random production secret>
+JWT_REFRESH_SECRET=<random production refresh secret>
+CORS_ORIGIN=<frontend production URL>
+```
+
+`DATABASE_URL` harus menggunakan pooled connection string untuk runtime aplikasi.
+`REDIS_URL` diambil oleh aplikasi saat `NODE_ENV=production`; jangan commit nilai
+secret ke repository atau memasukkannya ke `vercel.json`.
+
+Setelah deploy, endpoint API tersedia di:
+`https://<project-domain>/api/v1/health`
+
+---
+
 ## 🔑 Default Accounts
 
 Setelah menjalankan `npm run prisma:seed`, gunakan akun berikut:

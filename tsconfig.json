@@ -19,8 +19,7 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "allowSyntheticDefaultImports": true,
-    "types": ["node"],
-    "typeRoots": ["./node_modules/@types", "./src/types"]
+    "types": ["node"]
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "**/*.test.ts", "src/__tests__/**/*"],
