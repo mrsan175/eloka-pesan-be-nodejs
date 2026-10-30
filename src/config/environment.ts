@@ -49,6 +49,14 @@ export const config = {
       .filter(Boolean),
   },
 
+  // QRIS payment gateway
+  payment: {
+    webhookSecret: process.env.PAYMENT_WEBHOOK_SECRET || '',
+    staticPayload: process.env.QRIS_STATIC_PAYLOAD || '',
+    expiryMinutes: parseInt(process.env.PAYMENT_EXPIRY_MINUTES || '15', 10),
+    simulationEnabled: process.env.PAYMENT_SIMULATION_ENABLED !== 'false',
+  },
+
   // Rate Limiting
   rateLimit: {
     windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10), // 15 mins

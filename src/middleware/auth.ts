@@ -37,6 +37,31 @@ export const authenticate = (
   }
 };
 
+export const optionalAuthenticate = (
+  req: AuthRequest,
+  _res: Response,
+  next: NextFunction
+): void => {
+  const authHeader = req.headers.authorization;
+  const token = authHeader?.split(' ')[1];
+
+  if (!token) {
+    next();
+    return;
+  }
+
+  try {
+    req.user = jwt.verify(token, config.jwt.secret) as {
+      id: string;
+      email: string;
+      role: string;
+    };
+    next();
+  } catch {
+    throw new AppError('Invalid or expired token', 401);
+  }
+};
+
 export const authorize = (roles: string[]) => {
   return (req: AuthRequest, _res: Response, next: NextFunction): void => {
     if (!req.user || !roles.includes(req.user.role)) {

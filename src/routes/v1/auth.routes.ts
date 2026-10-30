@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { body } from 'express-validator';
 import { validateRequest } from '../../middleware/validateRequest';
+import { authenticate } from '../../middleware/auth';
 import { asyncHandler } from '../../utils/asyncHandler';
 import { AuthController } from '../../controllers/auth.controller';
 
@@ -38,6 +39,7 @@ router.post(
 
 router.post(
   '/logout',
+  authenticate,
   asyncHandler(AuthController.logout)
 );
 

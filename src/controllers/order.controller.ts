@@ -5,6 +5,7 @@ import { NotFoundError, BadRequestError, ForbiddenError } from '../utils/errors'
 import { sendSuccess } from '../utils/response';
 import { Decimal } from '@prisma/client/runtime/library';
 import { OrderType } from '@prisma/client';
+import { randomBytes } from 'crypto';
 
 interface AuthRequest extends Request {
   user?: {
@@ -109,11 +110,19 @@ export class OrderController {
       throw new NotFoundError('Order not found');
     }
 
-    // Only allow owner or staff/admin to view
-    const isOwner = order.userId === req.user!.id;
-    const isStaffOrAdmin = ['ADMIN', 'STAFF'].includes(req.user!.role);
+    // Guest orders are accessed with the one-time token returned at checkout.
+    const isOwner = Boolean(req.user && order.userId === req.user.id);
+    const isStaffOrAdmin = Boolean(req.user && ['ADMIN', 'STAFF'].includes(req.user.role));
 
-    if (!isOwner && !isStaffOrAdmin) {
+    const guestToken = req.headers['x-order-access-token'];
+    const storedGuestToken = await redis.get(`order-access:${id}`);
+    const hasGuestAccess =
+      !order.userId &&
+      typeof guestToken === 'string' &&
+      storedGuestToken !== null &&
+      guestToken === storedGuestToken;
+
+    if ((!req.user || (!isOwner && !isStaffOrAdmin)) && !hasGuestAccess) {
       throw new ForbiddenError('Access denied');
     }
 
@@ -338,6 +347,11 @@ export class OrderController {
       return createdOrder;
     });
 
+    const guestAccessToken = req.user ? undefined : randomBytes(32).toString('hex');
+    if (guestAccessToken) {
+      await redis.set(`order-access:${order.id}`, guestAccessToken, 'EX', 86400);
+    }
+
     // Cache active order in Redis (1 hour TTL)
     await redis.set(
       `order:${order.id}`,
@@ -346,7 +360,12 @@ export class OrderController {
       3600
     );
 
-    sendSuccess(res, order, 'Order created successfully', 201);
+    sendSuccess(
+      res,
+      guestAccessToken ? { order, guestAccessToken } : order,
+      'Order created successfully',
+      201
+    );
   }
 
   static async updateOrderStatus(req: AuthRequest, res: Response): Promise<void> {

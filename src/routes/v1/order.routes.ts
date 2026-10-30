@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { body, param, query } from 'express-validator';
 import { validateRequest } from '../../middleware/validateRequest';
 import { asyncHandler } from '../../utils/asyncHandler';
-import { authenticate, authorize } from '../../middleware/auth';
+import { authenticate, authorize, optionalAuthenticate } from '../../middleware/auth';
 import { OrderController } from '../../controllers/order.controller';
 
 const router = Router();
@@ -10,7 +10,7 @@ const router = Router();
 router.post(
   '/',
   [
-    authenticate,
+    optionalAuthenticate,
     body('shopId').notEmpty().withMessage('Shop ID is required'),
     body('orderType').isIn(['DINE_IN', 'TAKEAWAY', 'DELIVERY']).withMessage('Invalid order type'),
     body('tableNumber').if(body('orderType').equals('DINE_IN')).notEmpty().withMessage('Table number is required for dine-in orders'),
@@ -27,12 +27,10 @@ router.post(
   asyncHandler(OrderController.createOrder)
 );
 
-// Customer and staff order routes require authentication.
-router.use(authenticate);
-
 router.get(
   '/my-orders',
   [
+    authenticate,
     query('page').optional().isInt({ min: 1 }).withMessage('Page must be positive integer'),
     query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be 1-100'),
     query('status').optional().isIn(['PENDING', 'CONFIRMED', 'PREPARING', 'READY', 'DELIVERING', 'COMPLETED', 'CANCELLED']).withMessage('Invalid status'),
@@ -43,9 +41,16 @@ router.get(
 
 router.get(
   '/:id',
-  [param('id').isString().notEmpty().withMessage('Invalid order ID'), validateRequest],
+  [
+    optionalAuthenticate,
+    param('id').isString().notEmpty().withMessage('Invalid order ID'),
+    validateRequest,
+  ],
   asyncHandler(OrderController.getOrderById)
 );
+
+// Customer and staff order routes require authentication.
+router.use(authenticate);
 
 router.post(
   '/:id/cancel',
