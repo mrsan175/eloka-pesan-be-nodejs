@@ -215,12 +215,34 @@ async function seedOutlets(outlets: OutletSeed[], region: 'makassar' | 'bogor'):
       const addons = menuAddons[menuIndex] || [];
 
       const variants = menuVariants[menuIndex] || [];
-      for (let variantIndex = 0; variantIndex < 4; variantIndex++) {
+      for (let variantIndex = 0; variantIndex < variants.length; variantIndex++) {
         const variant = variants[variantIndex];
+        if (variant?.[0] === 'Size') {
+          await prisma.productSize.upsert({
+            where: { id: `${productId}-size-${variantIndex + 1}` },
+            update: {
+              name: variant[1],
+              price: Number(price) + variant[2],
+              isAvailable: true,
+              productId,
+              order: variantIndex,
+            },
+            create: {
+              id: `${productId}-size-${variantIndex + 1}`,
+              productId,
+              name: variant[1],
+              price: Number(price) + variant[2],
+              isAvailable: true,
+              order: variantIndex,
+            },
+          });
+          continue;
+        }
         await prisma.productAddon.upsert({
           where: { id: `${productId}-option-variant-${variantIndex + 1}` },
           update: {
             name: variant?.[0] || `Pilihan ${variantIndex + 1}`,
+            category: variant?.[0] || 'Lainnya',
             optionName: variant?.[1] || `Tidak tersedia`,
             price: (variant?.[2] || 0).toString(),
             isAvailable: Boolean(variant),
@@ -230,6 +252,7 @@ async function seedOutlets(outlets: OutletSeed[], region: 'makassar' | 'bogor'):
             id: `${productId}-option-variant-${variantIndex + 1}`,
             productId,
             name: variant?.[0] || `Pilihan ${variantIndex + 1}`,
+            category: variant?.[0] || 'Lainnya',
             optionName: variant?.[1] || `Tidak tersedia`,
             price: (variant?.[2] || 0).toString(),
             isAvailable: Boolean(variant),
@@ -243,6 +266,7 @@ async function seedOutlets(outlets: OutletSeed[], region: 'makassar' | 'bogor'):
           where: { id: `${productId}-option-addon-${addonIndex + 1}` },
           update: {
             name: addon?.[0] || `Add-on ${addonIndex + 1}`,
+            category: 'Topping',
             optionName: null,
             price: (addon?.[1] || 0).toString(),
             isAvailable: Boolean(addon),
@@ -252,6 +276,7 @@ async function seedOutlets(outlets: OutletSeed[], region: 'makassar' | 'bogor'):
             id: `${productId}-option-addon-${addonIndex + 1}`,
             productId,
             name: addon?.[0] || `Add-on ${addonIndex + 1}`,
+            category: 'Topping',
             optionName: null,
             price: (addon?.[1] || 0).toString(),
             isAvailable: Boolean(addon),

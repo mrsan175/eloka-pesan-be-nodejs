@@ -204,7 +204,8 @@ backend/
 - **Shop**: Restoran/coffee shop
 - **Category**: Kategori produk (Coffee, Food, dll)
 - **Product**: Menu item dengan price, availability, stock
-- **ProductAddon**: Pilihan produk gabungan (size, temperature, dan addon) dengan `optionName` opsional
+- **ProductAddon**: Pilihan produk yang dikelompokkan per kategori (Sugar, Ice, Topping, dan lainnya)
+- **ProductSize**: Ukuran yang melekat pada produk (misalnya Regular/Large) dengan harga masing-masing
 - **ShopProduct**: Relasi visibility produk universal pada outlet tertentu
 - **ShopStaff**: Assignment staff ke outlet; satu outlet dapat memiliki banyak staff
 - **Order**: Pesanan dengan calculation otomatis
@@ -300,6 +301,7 @@ npm test
 - Staff hanya dapat melihat produk outlet yang ditugaskan dan mengubah visibility produk per outlet.
 - `POST /api/v1/products/:productId/shops/:shopId/toggle-visibility` - Toggle visibility produk per outlet (Admin atau Staff assigned)
 - `POST /api/v1/products/addons/:addonId/shops/:shopId/toggle-availability` - Toggle availability addon (Admin atau Staff assigned)
+- `POST /api/v1/products/:productId/sizes` - Tambah ukuran produk (Admin only)
 
 ### Shops - Admin Only
 - `POST /api/v1/shops` - Create shop (Admin only)

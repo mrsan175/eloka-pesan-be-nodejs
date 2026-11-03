@@ -20,6 +20,7 @@ interface OrderItemInput {
   productId: string;
   quantity: number;
   addonIds?: string[];
+  sizeId?: string;
   notes?: string;
 }
 
@@ -59,6 +60,7 @@ export class OrderController {
           items: {
             include: {
               product: { select: { id: true, name: true, image: true } },
+              productSize: true,
               addons: { include: { productAddon: true } },
             },
           },
@@ -90,6 +92,7 @@ export class OrderController {
         items: {
           include: {
             product: { select: { id: true, name: true, image: true, price: true } },
+            productSize: true,
             addons: {
               include: {
                 productAddon: { select: { id: true, name: true, optionName: true, price: true } },
@@ -244,6 +247,7 @@ export class OrderController {
       where: { id: { in: productIds } },
       include: {
         addons: true,
+        sizes: true,
         shopProducts: { where: { shopId, isVisible: true }, select: { shopId: true } },
       },
     });
@@ -274,11 +278,21 @@ export class OrderController {
       subtotal: Decimal;
       notes?: string;
       addonIds: string[];
+      productSizeId?: string;
     }> = [];
 
     for (const item of items) {
       const product = products.find((p) => p.id === item.productId)!;
       let itemPrice = product.price;
+
+      let productSizeId: string | undefined;
+      if (item.sizeId) {
+        const size = product.sizes.find((candidate) => candidate.id === item.sizeId);
+        if (!size) throw new BadRequestError(`Size ${item.sizeId} not found for product ${product.name}`);
+        if (!size.isAvailable) throw new BadRequestError(`Size ${size.name} is not available`);
+        itemPrice = size.price;
+        productSizeId = size.id;
+      }
 
       // Add addon prices
       const addonIds: string[] = [];
@@ -302,6 +316,7 @@ export class OrderController {
         subtotal: itemSubtotal,
         notes: item.notes,
         addonIds,
+        productSizeId,
       });
     }
 
@@ -343,6 +358,7 @@ export class OrderController {
           items: {
             create: processedItems.map((item) => ({
               productId: item.productId,
+              productSizeId: item.productSizeId,
               quantity: item.quantity,
               price: item.price,
               subtotal: item.subtotal,

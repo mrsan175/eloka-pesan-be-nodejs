@@ -48,6 +48,10 @@ export class ProductController {
           addons: {
             where: { isAvailable: true },
           },
+          sizes: {
+            where: { isAvailable: true },
+            orderBy: { order: 'asc' },
+          },
         },
         skip,
         take: Number(limit),
@@ -74,6 +78,7 @@ export class ProductController {
           select: { id: true, name: true, shopId: true },
         },
         addons: true,
+        sizes: { orderBy: { order: 'asc' } },
       },
     });
 
@@ -109,6 +114,10 @@ export class ProductController {
         },
         addons: {
           ...(req.user ? {} : { where: { isAvailable: true } }),
+        },
+        sizes: {
+          where: { isAvailable: true },
+          orderBy: { order: 'asc' },
         },
         shopProducts: {
           where: { shopId },
@@ -360,7 +369,7 @@ export class ProductController {
 
   static async addProductAddon(req: AuthRequest, res: Response): Promise<void> {
     const { productId } = req.params;
-    const { name, optionName, price } = req.body;
+    const { name, category, optionName, price } = req.body;
 
     const product = await prisma.product.findUnique({
       where: { id: productId },
@@ -374,12 +383,29 @@ export class ProductController {
       data: {
         productId,
         name,
+        category: category || name,
         optionName,
         price: price || 0,
       },
     });
 
     sendSuccess(res, addon, 'Addon added successfully', 201);
+  }
+
+  static async addProductSize(req: AuthRequest, res: Response): Promise<void> {
+    const { productId } = req.params;
+    const { name, price, order } = req.body;
+
+    const product = await prisma.product.findUnique({ where: { id: productId } });
+    if (!product) {
+      throw new NotFoundError('Product not found');
+    }
+
+    const size = await prisma.productSize.create({
+      data: { productId, name, price, order: order || 0 },
+    });
+
+    sendSuccess(res, size, 'Product size added successfully', 201);
   }
 
   static async removeProductAddon(req: AuthRequest, res: Response): Promise<void> {

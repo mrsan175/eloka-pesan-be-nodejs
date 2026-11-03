@@ -29,7 +29,7 @@ Eloka Pesan adalah sistem backend untuk pemesanan makanan dan minuman di restora
 
 - **Multiple order types**: Dine-in, Takeaway, Delivery
 - **Role-based access**: Admin, Staff, Customer
-- **Product options**: Size, temperature, extra shot, dll. disimpan di `ProductAddon`
+- **Product options**: Sugar, Ice, Topping, dan opsi lain disimpan di `ProductAddon`; ukuran disimpan di `ProductSize`
 - **Outlet visibility**: Produk universal dapat ditampilkan/sembunyikan per outlet melalui `ShopProduct`
 - **Order management**: Status lifecycle dari PENDING hingga COMPLETED
 - **Auto-calculation**: Subtotal + PPN 11% + Ongkir (untuk delivery)
@@ -834,7 +834,7 @@ Content-Type: application/json
 ```
 
 **Order Calculation:**
-- **Subtotal** = (Product price + variant adjustments) × quantity + addon prices
+- **Subtotal** = (Product size price atau product price + addon prices) × quantity
 - **Tax (PPN 11%)** = Subtotal × 0.11
 - **Delivery Fee** = Rp 5.000 (only for DELIVERY orders)
 - **Total** = Subtotal + Tax + Delivery Fee - Discount
@@ -1161,7 +1161,8 @@ Content-Type: application/json
 ### Product Management
 
 1. **Product options:**
-   - Semua pilihan produk disimpan pada `ProductAddon`
+   - Addon disimpan pada `ProductAddon` dan dikelompokkan melalui `category`
+   - Ukuran Regular/Large disimpan terpisah pada `ProductSize`
    - `optionName` dapat dipakai untuk kelompok pilihan seperti Size atau Temperature
    - Harga pilihan disimpan pada kolom `price`
 

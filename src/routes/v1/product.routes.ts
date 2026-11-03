@@ -128,12 +128,26 @@ router.post(
   [
     param('productId').isString().notEmpty().withMessage('Invalid product ID'),
     body('name').notEmpty().withMessage('Addon name is required'),
+    body('category').optional().isString().notEmpty().withMessage('Addon category cannot be empty'),
     body('optionName').optional().isString(),
     body('price').isFloat({ min: 0 }).withMessage('Price must be non-negative number'),
     validateRequest,
   ],
   authorize(['ADMIN']),
   asyncHandler(ProductController.addProductAddon)
+);
+
+router.post(
+  '/:productId/sizes',
+  [
+    param('productId').isString().notEmpty().withMessage('Invalid product ID'),
+    body('name').notEmpty().withMessage('Size name is required'),
+    body('price').isFloat({ min: 0 }).withMessage('Size price must be non-negative number'),
+    body('order').optional().isInt({ min: 0 }),
+    validateRequest,
+  ],
+  authorize(['ADMIN']),
+  asyncHandler(ProductController.addProductSize)
 );
 
 router.delete(
