@@ -7,6 +7,7 @@ import { Decimal } from '@prisma/client/runtime/library';
 import { OrderType } from '@prisma/client';
 import { randomBytes } from 'crypto';
 import { notifyOrderUpdate } from '../services/notification.service';
+import { getAddonSelectionMode } from '../utils/addon';
 
 interface AuthRequest extends Request {
   user?: {
@@ -297,7 +298,7 @@ export class OrderController {
           return groups;
         }, {});
         for (const [category, categoryAddons] of Object.entries(selectedByCategory)) {
-          if (categoryAddons.some((addon) => addon.selectionMode === 'SINGLE') && categoryAddons.length > 1) {
+          if (getAddonSelectionMode(category) === 'SINGLE' && categoryAddons.length > 1) {
             throw new BadRequestError(`Only one addon can be selected in category ${category}`);
           }
         }

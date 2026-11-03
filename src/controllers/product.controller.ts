@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { prisma } from '../config/database';
 import { NotFoundError, BadRequestError } from '../utils/errors';
 import { sendSuccess } from '../utils/response';
+import { getAddonSelectionMode } from '../utils/addon';
 
 interface AuthRequest extends Request {
   user?: {
@@ -360,7 +361,7 @@ export class ProductController {
 
   static async addProductAddon(req: AuthRequest, res: Response): Promise<void> {
     const { productId } = req.params;
-    const { name, category, selectionMode, price } = req.body;
+    const { name, category, price } = req.body;
 
     const product = await prisma.product.findUnique({
       where: { id: productId },
@@ -375,7 +376,7 @@ export class ProductController {
         productId,
         name,
         category: category || name,
-        selectionMode: selectionMode || 'MULTIPLE',
+        selectionMode: getAddonSelectionMode(category || name),
         price: price || 0,
       },
     });
@@ -385,7 +386,7 @@ export class ProductController {
 
   static async updateProductAddon(req: AuthRequest, res: Response): Promise<void> {
     const { id } = req.params;
-    const { name, category, selectionMode, price } = req.body;
+    const { name, category, price } = req.body;
     const addon = await prisma.productAddon.findUnique({ where: { id } });
 
     if (!addon) {
@@ -397,7 +398,7 @@ export class ProductController {
       data: {
         ...(name !== undefined && { name }),
         ...(category !== undefined && { category }),
-        ...(selectionMode !== undefined && { selectionMode }),
+        ...(category !== undefined && { selectionMode: getAddonSelectionMode(category) }),
         ...(price !== undefined && { price }),
       },
     });

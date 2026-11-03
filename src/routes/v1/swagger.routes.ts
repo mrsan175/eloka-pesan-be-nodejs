@@ -151,7 +151,7 @@ const options = {
             productId: { type: 'string' },
             name: { type: 'string', example: 'Ice Cream' },
             category: { type: 'string', example: 'Topping' },
-            selectionMode: { type: 'string', enum: ['SINGLE', 'MULTIPLE'], example: 'MULTIPLE' },
+            selectionMode: { type: 'string', enum: ['SINGLE', 'MULTIPLE'], example: 'MULTIPLE', description: 'Computed from category: Ice/Sugar are SINGLE; other categories are MULTIPLE.' },
             price: { type: 'number', example: 8000 },
             isAvailable: { type: 'boolean' },
           },
