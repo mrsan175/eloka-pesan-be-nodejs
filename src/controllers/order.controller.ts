@@ -227,6 +227,7 @@ export class OrderController {
           items: {
             include: {
               product: { select: { id: true, name: true } },
+              addons: { include: { productAddon: true } },
             },
           },
         },
