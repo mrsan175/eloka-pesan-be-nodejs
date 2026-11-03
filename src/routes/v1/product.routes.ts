@@ -26,6 +26,12 @@ router.get(
 );
 
 router.get(
+  '/addon-categories',
+  authenticate,
+  asyncHandler(ProductController.getAddonCategories)
+);
+
+router.get(
   '/shop/:shopId',
   optionalAuthenticate,
   [param('shopId').isString().notEmpty().withMessage('Invalid shop ID'), validateRequest],
@@ -124,11 +130,41 @@ router.post(
 
 // Product option routes
 router.post(
+  '/addon-categories',
+  [
+    body('name').notEmpty().withMessage('Addon category name is required'),
+    body('selectionMode').isIn(['SINGLE', 'MULTIPLE']).withMessage('Selection mode must be SINGLE or MULTIPLE'),
+    validateRequest,
+  ],
+  authorize(['ADMIN']),
+  asyncHandler(ProductController.createAddonCategory)
+);
+
+router.put(
+  '/addon-categories/:id',
+  [
+    param('id').isString().notEmpty().withMessage('Invalid addon category ID'),
+    body('name').optional().notEmpty(),
+    body('selectionMode').optional().isIn(['SINGLE', 'MULTIPLE']),
+    validateRequest,
+  ],
+  authorize(['ADMIN']),
+  asyncHandler(ProductController.updateAddonCategory)
+);
+
+router.delete(
+  '/addon-categories/:id',
+  [param('id').isString().notEmpty(), validateRequest],
+  authorize(['ADMIN']),
+  asyncHandler(ProductController.deleteAddonCategory)
+);
+
+router.post(
   '/:productId/addons',
   [
     param('productId').isString().notEmpty().withMessage('Invalid product ID'),
     body('name').notEmpty().withMessage('Addon name is required'),
-    body('category').optional().isString().notEmpty().withMessage('Addon category cannot be empty'),
+    body('categoryId').notEmpty().withMessage('Addon category is required'),
     body('price').isFloat({ min: 0 }).withMessage('Price must be non-negative number'),
     validateRequest,
   ],
@@ -141,7 +177,7 @@ router.put(
   [
     param('id').isString().notEmpty().withMessage('Invalid addon ID'),
     body('name').optional().isString().notEmpty(),
-    body('category').optional().isString().notEmpty(),
+    body('categoryId').optional().isString().notEmpty(),
     body('price').optional().isFloat({ min: 0 }).withMessage('Price must be non-negative number'),
     validateRequest,
   ],

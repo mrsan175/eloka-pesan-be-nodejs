@@ -750,8 +750,8 @@ PUT /api/v1/products/addons/:id
 Authorization: ******
 ```
 
-Body menggunakan `name`, `category`, dan `price`.
-Aturan pilihan ditentukan otomatis dari kategori: kategori yang mengandung `Ice` atau `Sugar` hanya menerima satu pilihan, sedangkan kategori lainnya dapat menerima beberapa pilihan.
+Body menggunakan `name`, `categoryId`, dan `price`.
+`categoryId` mengarah ke kategori addon yang memiliki aturan `SINGLE` atau `MULTIPLE`; aturan tersebut ditetapkan saat admin membuat kategori addon.
 Nama addon langsung berupa pilihan, misalnya `Ice Cream`, `Less Ice`, atau `Extra Sugar`.
 
 ---
@@ -1174,7 +1174,7 @@ Content-Type: application/json
 1. **Product options:**
    - Addon disimpan pada `ProductAddon` dan dikelompokkan melalui `category`
    - Ukuran seperti R/L menggunakan produk terpisah dengan label pada nama produk
-   - Kategori yang mengandung `Ice` atau `Sugar` hanya menerima satu pilihan; kategori lainnya dapat menerima beberapa pilihan
+   - Kategori addon memiliki aturan pilihan `SINGLE` atau `MULTIPLE` yang digunakan saat checkout
    - Harga pilihan disimpan pada kolom `price`
 
 2. **Outlet visibility:**

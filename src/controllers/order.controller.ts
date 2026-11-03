@@ -93,7 +93,7 @@ export class OrderController {
             product: { select: { id: true, name: true, image: true, price: true } },
             addons: {
               include: {
-                productAddon: { select: { id: true, name: true, category: true, price: true } },
+                productAddon: { select: { id: true, name: true, category: true, price: true, addonCategory: true } },
               },
             },
           },
@@ -244,7 +244,7 @@ export class OrderController {
     const products = await prisma.product.findMany({
       where: { id: { in: productIds } },
       include: {
-        addons: true,
+        addons: { include: { addonCategory: true } },
         shopProducts: { where: { shopId, isVisible: true }, select: { shopId: true } },
       },
     });
@@ -294,11 +294,13 @@ export class OrderController {
 
         const selectedAddons = product.addons.filter((addon) => addonIds.includes(addon.id));
         const selectedByCategory = selectedAddons.reduce<Record<string, typeof selectedAddons>>((groups, addon) => {
-          (groups[addon.category] ||= []).push(addon);
+          const categoryKey = addon.addonCategory?.id || addon.category;
+          (groups[categoryKey] ||= []).push(addon);
           return groups;
         }, {});
         for (const [category, categoryAddons] of Object.entries(selectedByCategory)) {
-          if (getAddonSelectionMode(category) === 'SINGLE' && categoryAddons.length > 1) {
+          const selectionMode = categoryAddons[0].addonCategory?.selectionMode || getAddonSelectionMode(category);
+          if (selectionMode === 'SINGLE' && categoryAddons.length > 1) {
             throw new BadRequestError(`Only one addon can be selected in category ${category}`);
           }
         }

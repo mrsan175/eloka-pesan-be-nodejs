@@ -152,19 +152,34 @@ model Product {
   @@map("products")
 }
 
+model AddonCategory {
+  id            String  @id @default(cuid())
+  name          String  @unique
+  selectionMode String  @default("MULTIPLE")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  addons ProductAddon[]
+
+  @@map("addon_categories")
+}
+
 model ProductAddon {
   id          String  @id @default(cuid())
   productId   String
   name        String
+  addonCategoryId String?
   category    String  @default("Lainnya")
   selectionMode String  @default("MULTIPLE")
   price       Decimal @default(0) @db.Decimal(10, 2)
   isAvailable Boolean @default(true)
 
   product         Product          @relation(fields: [productId], references: [id], onDelete: Cascade)
+  addonCategory   AddonCategory?   @relation(fields: [addonCategoryId], references: [id], onDelete: SetNull)
   orderItemAddons OrderItemAddon[]
 
   @@index([productId])
+  @@index([addonCategoryId])
   @@map("product_addons")
 }
 

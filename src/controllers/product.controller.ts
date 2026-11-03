@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { prisma } from '../config/database';
 import { NotFoundError, BadRequestError } from '../utils/errors';
 import { sendSuccess } from '../utils/response';
-import { getAddonSelectionMode } from '../utils/addon';
+import { getAddonSelectionMode as getCategorySelectionMode } from '../utils/addon-category';
 
 interface AuthRequest extends Request {
   user?: {
@@ -13,6 +13,48 @@ interface AuthRequest extends Request {
 }
 
 export class ProductController {
+  static async getAddonCategories(_req: Request, res: Response): Promise<void> {
+    const categories = await prisma.addonCategory.findMany({
+      orderBy: { name: 'asc' },
+    });
+    sendSuccess(res, categories, 'Addon categories retrieved successfully');
+  }
+
+  static async createAddonCategory(req: AuthRequest, res: Response): Promise<void> {
+    const { name, selectionMode } = req.body;
+    const category = await prisma.addonCategory.create({
+      data: { name, selectionMode },
+    });
+    sendSuccess(res, category, 'Addon category created successfully', 201);
+  }
+
+  static async updateAddonCategory(req: AuthRequest, res: Response): Promise<void> {
+    const { id } = req.params;
+    const { name, selectionMode } = req.body;
+    const category = await prisma.addonCategory.update({
+      where: { id },
+      data: {
+        ...(name !== undefined && { name }),
+        ...(selectionMode !== undefined && { selectionMode }),
+      },
+    });
+    sendSuccess(res, category, 'Addon category updated successfully');
+  }
+
+  static async deleteAddonCategory(req: AuthRequest, res: Response): Promise<void> {
+    const { id } = req.params;
+    const category = await prisma.addonCategory.findUnique({
+      where: { id },
+      include: { _count: { select: { addons: true } } },
+    });
+    if (!category) throw new NotFoundError('Addon category not found');
+    if (category._count.addons > 0) {
+      throw new BadRequestError('Kategori addon yang masih digunakan tidak dapat dihapus');
+    }
+    await prisma.addonCategory.delete({ where: { id } });
+    sendSuccess(res, null, 'Addon category deleted successfully');
+  }
+
   static async getAllProducts(req: Request, res: Response): Promise<void> {
     const { page = 1, limit = 10, search, categoryId, isAvailable, isPopular } = req.query;
 
@@ -47,6 +89,7 @@ export class ProductController {
             select: { id: true, name: true, shopId: true },
           },
           addons: {
+            include: { addonCategory: true },
             where: { isAvailable: true },
           },
         },
@@ -109,6 +152,7 @@ export class ProductController {
           select: { id: true, name: true },
         },
         addons: {
+          include: { addonCategory: true },
           ...(req.user ? {} : { where: { isAvailable: true } }),
         },
         shopProducts: {
@@ -361,7 +405,7 @@ export class ProductController {
 
   static async addProductAddon(req: AuthRequest, res: Response): Promise<void> {
     const { productId } = req.params;
-    const { name, category, price } = req.body;
+    const { name, categoryId, price } = req.body;
 
     const product = await prisma.product.findUnique({
       where: { id: productId },
@@ -371,12 +415,16 @@ export class ProductController {
       throw new NotFoundError('Product not found');
     }
 
+    const addonCategory = await prisma.addonCategory.findUnique({ where: { id: categoryId } });
+    if (!addonCategory) throw new NotFoundError('Addon category not found');
+
     const addon = await prisma.productAddon.create({
       data: {
         productId,
         name,
-        category: category || name,
-        selectionMode: getAddonSelectionMode(category || name),
+        addonCategoryId: categoryId,
+        category: addonCategory.name,
+        selectionMode: getCategorySelectionMode(addonCategory),
         price: price || 0,
       },
     });
@@ -386,19 +434,27 @@ export class ProductController {
 
   static async updateProductAddon(req: AuthRequest, res: Response): Promise<void> {
     const { id } = req.params;
-    const { name, category, price } = req.body;
+    const { name, categoryId, price } = req.body;
     const addon = await prisma.productAddon.findUnique({ where: { id } });
 
     if (!addon) {
       throw new NotFoundError('Addon not found');
     }
 
+    const addonCategory = categoryId
+      ? await prisma.addonCategory.findUnique({ where: { id: categoryId } })
+      : null;
+    if (categoryId && !addonCategory) throw new NotFoundError('Addon category not found');
+
     const updated = await prisma.productAddon.update({
       where: { id },
       data: {
         ...(name !== undefined && { name }),
-        ...(category !== undefined && { category }),
-        ...(category !== undefined && { selectionMode: getAddonSelectionMode(category) }),
+        ...(addonCategory && {
+          addonCategoryId: addonCategory.id,
+          category: addonCategory.name,
+          selectionMode: getCategorySelectionMode(addonCategory),
+        }),
         ...(price !== undefined && { price }),
       },
     });
