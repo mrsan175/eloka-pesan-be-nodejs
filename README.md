@@ -290,6 +290,7 @@ npm test
 - `GET /api/v1/orders/my-orders` - List own orders
 - `GET /api/v1/orders/:id` - Detail order
 - `POST /api/v1/orders/:id/cancel` - Cancel order
+- `GET /api/v1/orders/:id/status` - Lihat status pesanan tanpa login (data terbatas)
 
 ### Orders - Staff/Admin
 - `GET /api/v1/orders` - List orders (STAFF is restricted to assigned outlets)
@@ -302,6 +303,11 @@ npm test
 - `POST /api/v1/products/:productId/shops/:shopId/toggle-visibility` - Toggle visibility produk per outlet (Admin atau Staff assigned)
 - `POST /api/v1/products/addons/:addonId/shops/:shopId/toggle-availability` - Toggle availability addon (Admin atau Staff assigned)
 - `PUT /api/v1/products/addons/:id` - Edit addon dan aturan pilihan (Admin only)
+- `GET /api/v1/products/addon-categories` - Lihat kategori addon
+- `POST /api/v1/products/addon-categories` - Tambah kategori addon (Admin only)
+- `PUT /api/v1/products/addon-categories/:id` - Edit kategori addon (Admin only)
+- `DELETE /api/v1/products/addon-categories/:id` - Hapus kategori addon yang belum digunakan (Admin only)
+- `GET /api/v1/products/admin/all-products` - Daftar paginated produk universal dan seluruh addon (Admin only)
 
 ### Shops - Admin Only
 - `POST /api/v1/shops` - Create shop (Admin only)

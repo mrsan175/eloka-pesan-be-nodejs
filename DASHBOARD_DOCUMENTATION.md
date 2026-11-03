@@ -152,6 +152,11 @@ backend/
 | POST | `/api/v1/products/:productId/addons` | Admin only | Add addon |
 | PUT | `/api/v1/products/addons/:id` | Admin only | Edit addon dan aturan pilihan |
 | DELETE | `/api/v1/products/addons/:id` | Admin only | Delete addon jika belum digunakan pesanan; jika sudah digunakan, nonaktifkan addon |
+| GET | `/api/v1/products/addon-categories` | Authenticated | List addon categories |
+| POST | `/api/v1/products/addon-categories` | Admin only | Create addon category |
+| PUT | `/api/v1/products/addon-categories/:id` | Admin only | Edit addon category and selection mode |
+| DELETE | `/api/v1/products/addon-categories/:id` | Admin only | Delete unused addon category |
+| GET | `/api/v1/products/admin/all-products` | Admin only | Paginated universal products with all addons |
 | POST | `/api/v1/products/:productId/shops/:shopId/toggle-visibility` | Admin/Staff assigned | Toggle visibility produk pada outlet |
 | POST | `/api/v1/products/addons/:addonId/shops/:shopId/toggle-availability` | Admin/Staff assigned | Toggle availability addon |
 
@@ -162,6 +167,7 @@ backend/
 | GET | `/api/v1/orders` | Admin/Staff | Get all orders (STAFF auto-filtered to assigned outlet) |
 | GET | `/api/v1/orders/my-orders` | Customer | Get orders sendiri |
 | GET | `/api/v1/orders/:id` | Admin/Staff/Customer | Get order detail (STAFF limited to assigned outlet) |
+| GET | `/api/v1/orders/:id/status` | Public | Get limited order status without login |
 | POST | `/api/v1/orders` | Customer | Create order |
 | POST | `/api/v1/orders/:id/cancel` | Customer (PENDING) / Admin/Staff | Cancel order |
 | PATCH | `/api/v1/orders/:id/status` | Admin/Staff | Update status (triggers Redis pub/sub notification) |
