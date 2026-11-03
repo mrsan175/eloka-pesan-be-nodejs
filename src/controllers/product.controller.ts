@@ -315,6 +315,7 @@ export class ProductController {
       if (!shop) throw new NotFoundError('Shop not found');
     }
 
+    const shops = await prisma.shop.findMany({ select: { id: true } });
     const product = await prisma.product.create({
       data: {
         categoryId,
@@ -326,11 +327,9 @@ export class ProductController {
         isPopular: isPopular ?? false,
         stock,
         order: order || 0,
-        ...(shopId && {
-          shopProducts: {
-            create: { shopId },
-          },
-        }),
+        shopProducts: {
+          create: shops.map((shop) => ({ shopId: shop.id })),
+        },
       },
       include: {
         category: {

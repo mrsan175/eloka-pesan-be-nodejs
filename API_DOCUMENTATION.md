@@ -1180,6 +1180,9 @@ Authorization: ******
 Admin-only endpoint yang mengembalikan produk beserta seluruh addon, termasuk addon yang sedang nonaktif.
 Gunakan query `page`, `limit` (maksimal 50), dan `search` untuk pagination dan pencarian server-side.
 
+Produk bersifat universal. Saat admin membuat produk, produk otomatis tersedia di seluruh outlet;
+staff hanya mengatur `ShopProduct.isVisible` untuk menyalakan atau mematikan produk pada outlet yang ditugaskan.
+
 1. **Product options:**
    - Addon disimpan pada `ProductAddon` dan dikelompokkan melalui `category`
    - Ukuran seperti R/L menggunakan produk terpisah dengan label pada nama produk
