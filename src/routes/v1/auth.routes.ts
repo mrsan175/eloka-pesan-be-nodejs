@@ -29,6 +29,16 @@ router.post(
 );
 
 router.post(
+  '/dashboard-login',
+  [
+    body('email').isEmail().withMessage('Invalid email'),
+    body('password').notEmpty().withMessage('Password is required'),
+    validateRequest,
+  ],
+  asyncHandler(AuthController.dashboardLogin)
+);
+
+router.post(
   '/refresh-token',
   [
     body('refreshToken').notEmpty().withMessage('Refresh token is required'),

@@ -73,6 +73,18 @@ export class AuthController {
   }
 
   static async login(req: Request, res: Response): Promise<void> {
+    await AuthController.loginWithRoles(req, res);
+  }
+
+  static async dashboardLogin(req: Request, res: Response): Promise<void> {
+    await AuthController.loginWithRoles(req, res, ['ADMIN', 'STAFF']);
+  }
+
+  private static async loginWithRoles(
+    req: Request,
+    res: Response,
+    allowedRoles?: string[],
+  ): Promise<void> {
     const { email, password } = req.body;
 
     // Find user
@@ -88,7 +100,7 @@ export class AuthController {
       },
     });
 
-    if (!user) {
+    if (!user || (allowedRoles && !allowedRoles.includes(user.role))) {
       throw new UnauthorizedError('Invalid email or password');
     }
 

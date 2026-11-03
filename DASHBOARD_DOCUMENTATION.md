@@ -102,7 +102,8 @@ backend/
 
 | Method | Endpoint | Keterangan |
 |--------|----------|------------|
-| POST | `/api/v1/auth/login` | Login |
+| POST | `/api/v1/auth/dashboard-login` | Login dashboard (hanya `ADMIN`/`STAFF`) |
+| POST | `/api/v1/auth/login` | Login aplikasi umum |
 | POST | `/api/v1/auth/register` | Register user baru |
 | POST | `/api/v1/auth/refresh-token` | Refresh access token |
 | POST | `/api/v1/auth/logout` | Logout |
@@ -177,7 +178,7 @@ GET /api/v1/orders?page=1&limit=20&status=PENDING&shopId=xxx&startDate=2024-01-0
 ### 4.1 Login Flow
 
 ```
-1. POST /auth/login → { accessToken, refreshToken, user }
+1. POST /auth/dashboard-login → { accessToken, refreshToken, user } (hanya `ADMIN`/`STAFF`)
 2. Simpan accessToken di localStorage/session
 3. Untuk setiap request: Header "Authorization: Bearer <accessToken>"
 4. Jika 401 → POST /auth/refresh-token → dapat token baru

@@ -272,6 +272,7 @@ npm test
 ### Authentication
 - `POST /api/v1/auth/register` - Register user baru
 - `POST /api/v1/auth/login` - Login
+- `POST /api/v1/auth/dashboard-login` - Login dashboard, hanya untuk role `ADMIN` dan `STAFF`
 - `POST /api/v1/auth/refresh-token` - Refresh access token
 - `POST /api/v1/auth/logout` - Logout
 
