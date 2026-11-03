@@ -35,6 +35,16 @@ const STATUS_TRANSITIONS: Record<string, string[]> = {
   CANCELLED: [],
 };
 
+const STATUS_LABELS: Record<string, string> = {
+  PENDING: 'Menunggu',
+  CONFIRMED: 'Dikonfirmasi',
+  PREPARING: 'Diproses',
+  READY: 'Siap',
+  DELIVERING: 'Dikirim',
+  COMPLETED: 'Selesai',
+  CANCELLED: 'Dibatalkan',
+};
+
 function generateOrderNumber(): string {
   const date = new Date();
   const year = date.getFullYear().toString().slice(-2);
@@ -423,7 +433,7 @@ export class OrderController {
     const allowedTransitions = STATUS_TRANSITIONS[order.status];
     if (!allowedTransitions.includes(status)) {
       throw new BadRequestError(
-        `Cannot transition order from ${order.status} to ${status}. Allowed: ${allowedTransitions.join(', ') || 'none'}`
+        `Status pesanan ${STATUS_LABELS[order.status] || order.status} tidak dapat diubah menjadi ${STATUS_LABELS[status] || status}. Status yang diizinkan: ${allowedTransitions.map((item) => STATUS_LABELS[item] || item).join(', ') || 'tidak ada'}`
       );
     }
 
