@@ -108,7 +108,7 @@ export class ProductController {
           select: { id: true, name: true },
         },
         addons: {
-          where: { isAvailable: true },
+          ...(req.user ? {} : { where: { isAvailable: true } }),
         },
         shopProducts: {
           where: { shopId },
@@ -398,5 +398,35 @@ export class ProductController {
     });
 
     sendSuccess(res, null, 'Addon removed successfully');
+  }
+
+  static async toggleProductAddonAvailability(req: AuthRequest, res: Response): Promise<void> {
+    const { addonId, shopId } = req.params;
+
+    const addon = await prisma.productAddon.findUnique({
+      where: { id: addonId },
+      include: { product: { include: { shopProducts: true } } },
+    });
+
+    if (!addon) {
+      throw new NotFoundError('Addon not found');
+    }
+
+    if (req.user?.role === 'STAFF') {
+      const hasShopAccess = await prisma.shopStaff.findUnique({
+        where: { shopId_userId: { shopId, userId: req.user.id } },
+      });
+      const productAssigned = addon.product.shopProducts.some((shopProduct) => shopProduct.shopId === shopId);
+      if (!hasShopAccess || !productAssigned) {
+        throw new NotFoundError('Product is not assigned to this shop');
+      }
+    }
+
+    const updated = await prisma.productAddon.update({
+      where: { id: addonId },
+      data: { isAvailable: !addon.isAvailable },
+    });
+
+    sendSuccess(res, updated, 'Addon availability updated successfully');
   }
 }

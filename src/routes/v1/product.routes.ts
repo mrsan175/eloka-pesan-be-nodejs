@@ -143,4 +143,15 @@ router.delete(
   asyncHandler(ProductController.removeProductAddon)
 );
 
+router.post(
+  '/addons/:addonId/shops/:shopId/toggle-availability',
+  [
+    param('addonId').isString().notEmpty().withMessage('Invalid addon ID'),
+    param('shopId').isString().notEmpty().withMessage('Invalid shop ID'),
+    validateRequest,
+  ],
+  authorize(['ADMIN', 'STAFF']),
+  asyncHandler(ProductController.toggleProductAddonAvailability)
+);
+
 export default router;

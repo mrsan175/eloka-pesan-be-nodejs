@@ -744,7 +744,18 @@ Authorization: Bearer <accessToken>
 
 ---
 
-#### 13. Toggle Product Visibility per Shop (Admin/Staff assigned)
+#### 13. Toggle Product Option Availability (Admin/Staff assigned)
+```http
+POST /api/v1/products/addons/:addonId/shops/:shopId/toggle-availability
+Authorization: Bearer <access_token>
+```
+
+Staff hanya dapat mengubah addon pada produk yang ditugaskan ke outlet tersebut.
+Status `ProductAddon.isAvailable` bersifat universal untuk produk.
+
+---
+
+#### 14. Toggle Product Visibility per Shop (Admin/Staff assigned)
 ```http
 POST /api/v1/products/:productId/shops/:shopId/toggle-visibility
 Authorization: Bearer <accessToken>
