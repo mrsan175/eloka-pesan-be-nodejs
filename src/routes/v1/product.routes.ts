@@ -118,7 +118,7 @@ router.post(
     param('shopId').isString().notEmpty(),
     validateRequest,
   ],
-  authorize(['ADMIN']),
+  authorize(['ADMIN', 'STAFF']),
   asyncHandler(ProductController.toggleProductVisibility)
 );
 
