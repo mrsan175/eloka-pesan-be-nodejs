@@ -150,7 +150,7 @@ backend/
 | POST | `/api/v1/products/:id/toggle-availability` | Admin only | Toggle global availability |
 | POST | `/api/v1/products/:productId/addons` | Admin only | Add addon |
 | PUT | `/api/v1/products/addons/:id` | Admin only | Edit addon dan aturan pilihan |
-| DELETE | `/api/v1/products/addons/:id` | Admin only | Delete addon |
+| DELETE | `/api/v1/products/addons/:id` | Admin only | Delete addon jika belum digunakan pesanan; jika sudah digunakan, nonaktifkan addon |
 | POST | `/api/v1/products/:productId/shops/:shopId/toggle-visibility` | Admin/Staff assigned | Toggle visibility produk pada outlet |
 | POST | `/api/v1/products/addons/:addonId/shops/:shopId/toggle-availability` | Admin/Staff assigned | Toggle availability addon |
 

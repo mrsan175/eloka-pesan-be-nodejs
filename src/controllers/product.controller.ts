@@ -416,6 +416,13 @@ export class ProductController {
       throw new NotFoundError('Addon not found');
     }
 
+    const orderItemAddonCount = await prisma.orderItemAddon.count({
+      where: { productAddonId: id },
+    });
+    if (orderItemAddonCount > 0) {
+      throw new BadRequestError('Addon yang sudah digunakan pada pesanan tidak dapat dihapus. Nonaktifkan addon tersebut.');
+    }
+
     await prisma.productAddon.delete({
       where: { id },
     });
