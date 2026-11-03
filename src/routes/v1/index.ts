@@ -20,6 +20,7 @@ import productRoutes from './product.routes';
 import orderRoutes from './order.routes';
 import paymentRoutes from './payment.routes';
 import swaggerDocs from './swagger.routes';
+import notificationRoutes from './notification.routes';
 
 router.use('/users', userRoutes);
 router.use('/auth', authRoutes);
@@ -27,6 +28,7 @@ router.use('/shops', shopRoutes);
 router.use('/products', productRoutes);
 router.use('/orders', orderRoutes);
 router.use('/payments', paymentRoutes);
+router.use('/notifications', notificationRoutes);
 router.use('/docs', swaggerDocs);
 
 export default router;

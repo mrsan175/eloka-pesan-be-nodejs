@@ -304,6 +304,10 @@ npm test
 ### Shops - Admin Only
 - `POST /api/v1/shops` - Create shop (Admin only)
 
+### Notifications - Admin/Staff
+- `GET /api/v1/notifications/history` - Read recent order notifications from Redis Streams
+- `GET /api/v1/notifications/stream` - Receive live order notifications using Server-Sent Events
+
 ### Shops - Staff/Admin
 - `PUT /api/v1/shops/:id` - Update shop
 - `DELETE /api/v1/shops/:id` - Delete shop (Admin only)
@@ -464,7 +468,7 @@ MIT License - feel free to use this project for learning or commercial purposes.
 
 ## 👥 Contributors
 
-- **Your Name** - Initial work
+- **mrsan175** - Initial work
 
 ---
 

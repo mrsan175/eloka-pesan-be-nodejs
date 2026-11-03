@@ -208,6 +208,12 @@ GET /api/v1/orders?page=1&limit=20&status=PENDING&shopId=xxx&startDate=2024-01-0
 7. POST `/products/addons/:addonId/shops/:shopId/toggle-availability` → aktifkan/nonaktifkan addon
 8. Staff tidak dapat membuat, mengubah, menghapus produk, kategori, atau addon
 9. Shop access limited to assigned outlet only (cannot create shops)
+
+### 4.5 Notifications
+
+- `GET /api/v1/notifications/history` loads recent order events from Redis Streams.
+- `GET /api/v1/notifications/stream` keeps an authenticated SSE connection for new events.
+- ADMIN receives events from all outlets; STAFF receives only events for assigned outlets.
 ```
 
 ### 4.4 Order Status Transition
