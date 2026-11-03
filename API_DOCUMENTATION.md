@@ -588,22 +588,22 @@ GET /api/v1/products/:id
     "addons": [
       {
         "id": "clxxx...",
-        "name": "Size",
-        "optionName": "Regular",
+        "name": "Regular",
+        "category": "Size",
         "price": "0.00",
         "isAvailable": true
       },
       {
         "id": "clxxx...",
-        "name": "Size",
-        "optionName": "Large",
+        "name": "Large",
+        "category": "Size",
         "price": "5000.00",
         "isAvailable": true
       },
       {
         "id": "clxxx...",
         "name": "Extra Shot",
-        "optionName": null,
+        "category": "Topping",
         "price": "6000.00",
         "isAvailable": true
       },
@@ -728,8 +728,8 @@ Authorization: Bearer <accessToken>
 Content-Type: application/json
 
 {
-  "name": "Temperature",
-  "optionName": "Hot",
+  "name": "Hot",
+  "category": "Temperature",
   "price": 0
 }
 ```
@@ -744,7 +744,18 @@ Authorization: Bearer <accessToken>
 
 ---
 
-#### 13. Toggle Product Option Availability (Admin/Staff assigned)
+#### 13. Edit Product Addon (Admin only)
+```http
+PUT /api/v1/products/addons/:id
+Authorization: ******
+```
+
+Body menggunakan `name`, `category`, `selectionMode` (`SINGLE`/`MULTIPLE`), dan `price`.
+Nama addon langsung berupa pilihan, misalnya `Ice Cream`, `Less Ice`, atau `Extra Sugar`.
+
+---
+
+#### 14. Toggle Product Option Availability (Admin/Staff assigned)
 ```http
 POST /api/v1/products/addons/:addonId/shops/:shopId/toggle-availability
 Authorization: Bearer <access_token>
@@ -755,7 +766,7 @@ Status `ProductAddon.isAvailable` bersifat universal untuk produk.
 
 ---
 
-#### 14. Toggle Product Visibility per Shop (Admin/Staff assigned)
+#### 15. Toggle Product Visibility per Shop (Admin/Staff assigned)
 ```http
 POST /api/v1/products/:productId/shops/:shopId/toggle-visibility
 Authorization: Bearer <accessToken>
@@ -948,7 +959,6 @@ Authorization: Bearer <accessToken>
             "productAddon": {
               "id": "addon-id-1",
               "name": "Extra Shot",
-              "optionName": null,
               "price": "6000.00"
             }
           }
@@ -1163,7 +1173,7 @@ Content-Type: application/json
 1. **Product options:**
    - Addon disimpan pada `ProductAddon` dan dikelompokkan melalui `category`
    - Ukuran seperti R/L menggunakan produk terpisah dengan label pada nama produk
-   - `optionName` dapat dipakai untuk kelompok pilihan seperti Size atau Temperature
+   - `selectionMode` menentukan apakah kategori hanya menerima satu pilihan atau beberapa pilihan
    - Harga pilihan disimpan pada kolom `price`
 
 2. **Outlet visibility:**

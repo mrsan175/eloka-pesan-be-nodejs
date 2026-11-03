@@ -360,7 +360,7 @@ export class ProductController {
 
   static async addProductAddon(req: AuthRequest, res: Response): Promise<void> {
     const { productId } = req.params;
-    const { name, category, optionName, selectionMode, price } = req.body;
+    const { name, category, selectionMode, price } = req.body;
 
     const product = await prisma.product.findUnique({
       where: { id: productId },
@@ -375,7 +375,6 @@ export class ProductController {
         productId,
         name,
         category: category || name,
-        optionName,
         selectionMode: selectionMode || 'MULTIPLE',
         price: price || 0,
       },
@@ -386,7 +385,7 @@ export class ProductController {
 
   static async updateProductAddon(req: AuthRequest, res: Response): Promise<void> {
     const { id } = req.params;
-    const { name, category, optionName, selectionMode, price } = req.body;
+    const { name, category, selectionMode, price } = req.body;
     const addon = await prisma.productAddon.findUnique({ where: { id } });
 
     if (!addon) {
@@ -398,7 +397,6 @@ export class ProductController {
       data: {
         ...(name !== undefined && { name }),
         ...(category !== undefined && { category }),
-        ...(optionName !== undefined && { optionName }),
         ...(selectionMode !== undefined && { selectionMode }),
         ...(price !== undefined && { price }),
       },

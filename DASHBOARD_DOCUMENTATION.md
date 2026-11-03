@@ -65,7 +65,7 @@ backend/
 |-------|-------|------|------------|
 | **Category** | id, shopId, name, description, image, order, isActive |
 | **Product** | id, categoryId, name, description, price (Decimal), image, isAvailable, isPopular, stock |
-| **ProductAddon** | id, productId, name, category, optionName?, selectionMode (`SINGLE`/`MULTIPLE`), price, isAvailable. Addon dikelompokkan per kategori |
+| **ProductAddon** | id, productId, name, category, selectionMode (`SINGLE`/`MULTIPLE`), price, isAvailable. Nama addon langsung berupa pilihan seperti `Less Ice` atau `Ice Cream` |
 | **ShopProduct** | shopId, productId, isVisible. Menentukan visibility produk universal per outlet |
 
 ### 2.4 Order Management (PENTING untuk Dashboard)

@@ -92,7 +92,7 @@ export class OrderController {
             product: { select: { id: true, name: true, image: true, price: true } },
             addons: {
               include: {
-                productAddon: { select: { id: true, name: true, optionName: true, price: true } },
+                productAddon: { select: { id: true, name: true, category: true, price: true } },
               },
             },
           },

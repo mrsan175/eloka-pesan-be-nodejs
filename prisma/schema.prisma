@@ -157,7 +157,6 @@ model ProductAddon {
   productId   String
   name        String
   category    String  @default("Lainnya")
-  optionName  String?
   selectionMode String  @default("MULTIPLE")
   price       Decimal @default(0) @db.Decimal(10, 2)
   isAvailable Boolean @default(true)

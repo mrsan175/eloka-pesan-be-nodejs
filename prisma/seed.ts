@@ -224,7 +224,7 @@ async function seedOutlets(outlets: OutletSeed[], region: 'makassar' | 'bogor'):
           update: {
             name: variant?.[0] || `Pilihan ${variantIndex + 1}`,
             category: variantCategory,
-            optionName: variant?.[1] || `Tidak tersedia`,
+            name: variant?.[1] || `Pilihan ${variantIndex + 1}`,
             selectionMode: ['ice', 'sugar'].includes(variantCategory.toLowerCase()) ? 'SINGLE' : 'MULTIPLE',
             price: (variant?.[2] || 0).toString(),
             isAvailable: Boolean(variant),
@@ -235,7 +235,7 @@ async function seedOutlets(outlets: OutletSeed[], region: 'makassar' | 'bogor'):
             productId,
             name: variant?.[0] || `Pilihan ${variantIndex + 1}`,
             category: variantCategory,
-            optionName: variant?.[1] || `Tidak tersedia`,
+            name: variant?.[1] || `Pilihan ${variantIndex + 1}`,
             selectionMode: ['ice', 'sugar'].includes(variantCategory.toLowerCase()) ? 'SINGLE' : 'MULTIPLE',
             price: (variant?.[2] || 0).toString(),
             isAvailable: Boolean(variant),
@@ -250,7 +250,6 @@ async function seedOutlets(outlets: OutletSeed[], region: 'makassar' | 'bogor'):
           update: {
             name: addon?.[0] || `Add-on ${addonIndex + 1}`,
             category: 'Topping',
-            optionName: null,
             selectionMode: 'MULTIPLE',
             price: (addon?.[1] || 0).toString(),
             isAvailable: Boolean(addon),
@@ -261,7 +260,6 @@ async function seedOutlets(outlets: OutletSeed[], region: 'makassar' | 'bogor'):
             productId,
             name: addon?.[0] || `Add-on ${addonIndex + 1}`,
             category: 'Topping',
-            optionName: null,
             selectionMode: 'MULTIPLE',
             price: (addon?.[1] || 0).toString(),
             isAvailable: Boolean(addon),
@@ -374,8 +372,8 @@ async function main() {
       shopProducts: { create: { shopId: shop.id } },
       addons: {
         create: [
-          { name: 'Size', optionName: 'Regular', price: 0 },
-          { name: 'Size', optionName: 'Large', price: 5000 },
+          { name: 'Regular', category: 'Size', price: 0 },
+          { name: 'Large', category: 'Size', price: 5000 },
           { name: 'Extra Shot', price: 6000 },
           { name: 'Vanilla Syrup', price: 5000 },
         ],
@@ -395,8 +393,8 @@ async function main() {
       shopProducts: { create: { shopId: shop.id } },
       addons: {
         create: [
-          { name: 'Temperature', optionName: 'Hot', price: 0 },
-          { name: 'Temperature', optionName: 'Iced', price: 2000 },
+          { name: 'Hot', category: 'Temperature', price: 0 },
+          { name: 'Iced', category: 'Temperature', price: 2000 },
           { name: 'Oat Milk Sub', price: 10000 },
           { name: 'Caramel Drizzle', price: 5000 },
           { name: 'Extra Shot', price: 6000 },

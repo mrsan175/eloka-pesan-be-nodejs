@@ -149,7 +149,9 @@ const options = {
           properties: {
             id: { type: 'string' },
             productId: { type: 'string' },
-            name: { type: 'string', example: 'Extra Shot' },
+            name: { type: 'string', example: 'Ice Cream' },
+            category: { type: 'string', example: 'Topping' },
+            selectionMode: { type: 'string', enum: ['SINGLE', 'MULTIPLE'], example: 'MULTIPLE' },
             price: { type: 'number', example: 8000 },
             isAvailable: { type: 'boolean' },
           },
