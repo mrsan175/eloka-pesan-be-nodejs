@@ -56,10 +56,11 @@ export const optionalAuthenticate = (
       email: string;
       role: string;
     };
-    next();
   } catch {
-    throw new AppError('Invalid or expired token', 401);
+    // Invalid token - just continue without user context
+    req.user = undefined;
   }
+  next();
 };
 
 export const authorize = (roles: string[]) => {

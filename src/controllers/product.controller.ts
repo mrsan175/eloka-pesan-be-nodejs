@@ -119,6 +119,27 @@ export class ProductController {
     sendSuccess(res, products, 'Products retrieved successfully');
   }
 
+  static async getCategories(req: Request, res: Response): Promise<void> {
+    const { shopId } = req.query;
+
+    const where: any = {};
+    if (shopId) {
+      where.shopId = String(shopId);
+    }
+
+    const categories = await prisma.category.findMany({
+      where,
+      include: {
+        _count: {
+          select: { products: true },
+        },
+      },
+      orderBy: [{ order: 'asc' }, { createdAt: 'desc' }],
+    });
+
+    sendSuccess(res, categories, 'Categories retrieved successfully');
+  }
+
   static async createCategory(req: AuthRequest, res: Response): Promise<void> {
     const { shopId, name, description, image, order } = req.body;
 

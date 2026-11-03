@@ -39,6 +39,10 @@ uploads/*
 # Prisma
 prisma/migrations/*
 !prisma/migrations/.gitkeep
+prisma/seed.js
+prisma/seed.js.map
+prisma/seed.d.ts
+prisma/seed.d.ts.map
 
 # Temp files
 *.tmp

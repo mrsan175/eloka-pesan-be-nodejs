@@ -18,6 +18,13 @@ router.get(
   asyncHandler(ProductController.getAllProducts)
 );
 
+// Categories - public GET, protected POST/PUT/DELETE
+router.get(
+  '/categories',
+  [query('shopId').optional().isString().withMessage('Shop ID must be a string'), validateRequest],
+  asyncHandler(ProductController.getCategories)
+);
+
 router.get(
   '/:id',
   [param('id').isString().notEmpty().withMessage('Invalid product ID'), validateRequest],

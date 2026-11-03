@@ -13,12 +13,33 @@ interface AuthRequest extends Request {
 }
 
 export class ShopController {
-  static async getAllShops(req: Request, res: Response): Promise<void> {
+  static async getAllShops(req: AuthRequest, res: Response): Promise<void> {
     const { page = 1, limit = 10, search, isOpen } = req.query;
 
     const skip = (Number(page) - 1) * Number(limit);
 
     const where: any = {};
+
+    // Role-based filtering: STAFF only see shops they are assigned to
+    if (req.user?.role === 'STAFF') {
+      const staffShops = await prisma.shopStaff.findMany({
+        where: { userId: req.user.id },
+        select: { shopId: true },
+      });
+      const assignedShopIds = staffShops.map((s) => s.shopId);
+
+      if (assignedShopIds.length === 0) {
+        sendSuccess(res, [], 'No shops assigned to this staff', 200, {
+          page: Number(page),
+          limit: Number(limit),
+          total: 0,
+          totalPages: 0,
+        });
+        return;
+      }
+
+      where.id = { in: assignedShopIds };
+    }
 
     if (search) {
       where.OR = [

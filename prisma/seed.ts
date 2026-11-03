@@ -252,19 +252,8 @@ async function main() {
     },
   });
 
-  // Create Staff User
-  const staffPassword = await bcrypt.hash('staff123', 10);
-  const staff = await prisma.user.upsert({
-    where: { email: 'staff@elokapesan.com' },
-    update: {},
-    create: {
-      email: 'staff@elokapesan.com',
-      password: staffPassword,
-      name: 'Barista Staff',
-      phone: '+628222222222',
-      role: 'STAFF',
-    },
-  });
+  // STAFF accounts removed - staff users are created per outlet via seedOutlets()
+  // Staff can only exist when assigned to a specific shop
 
   // Create Demo Customer
   const customerPassword = await bcrypt.hash('user123', 10);
@@ -416,12 +405,11 @@ async function main() {
   console.log('Seed completed successfully!');
   console.log({
     admin: admin.email,
-    staff: staff.email,
     customer: customer.email,
     shop: shop.name,
     makassarOutlets: makassarOutlets.length,
     bogorOutlets: bogorOutlets.length,
-    outletAccountPassword: 'outlet123',
+    outletStaffAccountPassword: 'outlet123',
   });
 }
 

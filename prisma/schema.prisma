@@ -30,6 +30,7 @@ model User {
   orders       Order[]
   refreshToken RefreshToken[]
   addresses    Address[]
+  staffShops   ShopStaff[]
 
   @@index([email])
   @@map("users")
@@ -87,8 +88,24 @@ model Shop {
   // Relations
   categories Category[]
   orders     Order[]
+  staff      ShopStaff[]
 
   @@map("shops")
+}
+
+model ShopStaff {
+  id        String   @id @default(cuid())
+  shopId    String
+  userId    String
+  createdAt DateTime @default(now())
+
+  shop Shop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([shopId, userId])
+  @@index([shopId])
+  @@index([userId])
+  @@map("shop_staff")
 }
 
 // Product Management

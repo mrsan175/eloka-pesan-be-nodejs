@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { body, param, query } from 'express-validator';
 import { validateRequest } from '../../middleware/validateRequest';
 import { asyncHandler } from '../../utils/asyncHandler';
-import { authenticate, authorize } from '../../middleware/auth';
+import { authenticate, authorize, optionalAuthenticate } from '../../middleware/auth';
 import { ShopController } from '../../controllers/shop.controller';
 
 const router = Router();
@@ -10,6 +10,7 @@ const router = Router();
 // Public routes
 router.get(
   '/',
+  optionalAuthenticate,
   [
     query('page').optional().isInt({ min: 1 }).withMessage('Page must be positive integer'),
     query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be 1-100'),
@@ -39,7 +40,7 @@ router.get(
 // Protected routes - requires authentication
 router.use(authenticate);
 
-// Admin/Staff routes
+// Admin only - STAFF cannot create shops (shops must exist before staff can be assigned)
 router.post(
   '/',
   [
@@ -50,7 +51,7 @@ router.post(
     body('closeTime').matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/).withMessage('Invalid close time format (HH:mm)'),
     validateRequest,
   ],
-  authorize(['ADMIN', 'STAFF']),
+  authorize(['ADMIN']),
   asyncHandler(ShopController.createShop)
 );
 

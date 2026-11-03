@@ -6,6 +6,7 @@ import { sendSuccess } from '../utils/response';
 import { Decimal } from '@prisma/client/runtime/library';
 import { OrderType } from '@prisma/client';
 import { randomBytes } from 'crypto';
+import { notifyOrderUpdate } from '../services/notification.service';
 
 interface AuthRequest extends Request {
   user?: {
@@ -112,7 +113,6 @@ export class OrderController {
 
     // Guest orders are accessed with the one-time token returned at checkout.
     const isOwner = Boolean(req.user && order.userId === req.user.id);
-    const isStaffOrAdmin = Boolean(req.user && ['ADMIN', 'STAFF'].includes(req.user.role));
 
     const guestToken = req.headers['x-order-access-token'];
     const storedGuestToken = await redis.get(`order-access:${id}`);
@@ -122,7 +122,20 @@ export class OrderController {
       storedGuestToken !== null &&
       guestToken === storedGuestToken;
 
-    if ((!req.user || (!isOwner && !isStaffOrAdmin)) && !hasGuestAccess) {
+    // If staff or admin, check shop access
+    if (req.user && req.user.role === 'STAFF') {
+      const staffShops = await prisma.shopStaff.findMany({
+        where: { userId: req.user.id },
+        select: { shopId: true },
+      });
+      const assignedShopIds = staffShops.map((s) => s.shopId);
+      
+      if (!assignedShopIds.includes(order.shopId)) {
+        throw new ForbiddenError('You do not have access to this order');
+      }
+    }
+
+    if ((!req.user || (!isOwner && !['ADMIN', 'STAFF'].includes(req.user.role))) && !hasGuestAccess) {
       throw new ForbiddenError('Access denied');
     }
 
@@ -135,13 +148,45 @@ export class OrderController {
 
     const where: any = {};
     if (status) where.status = status;
-    if (shopId) where.shopId = shopId;
     if (userId) where.userId = userId;
     if (orderType) where.orderType = orderType;
     if (startDate || endDate) {
       where.createdAt = {};
       if (startDate) where.createdAt.gte = new Date(String(startDate));
       if (endDate) where.createdAt.lte = new Date(String(endDate));
+    }
+
+    // Role-based filtering:
+    // If user is STAFF, restrict orders to shops where the staff is assigned
+    if (req.user && req.user.role === 'STAFF') {
+      const staffShops = await prisma.shopStaff.findMany({
+        where: { userId: req.user.id },
+        select: { shopId: true },
+      });
+      const assignedShopIds = staffShops.map((s) => s.shopId);
+
+      if (assignedShopIds.length === 0) {
+        // Staff not assigned to any shop -> return empty list
+        sendSuccess(res, [], 'Orders retrieved successfully', 200, {
+          page: Number(page),
+          limit: Number(limit),
+          total: 0,
+          totalPages: 0,
+        });
+        return;
+      }
+
+      // If specific shopId requested, verify staff is assigned to it
+      if (shopId) {
+        if (!assignedShopIds.includes(String(shopId))) {
+          throw new ForbiddenError('You do not have access to orders for this shop');
+        }
+        where.shopId = String(shopId);
+      } else {
+        where.shopId = { in: assignedShopIds };
+      }
+    } else if (shopId) {
+      where.shopId = String(shopId);
     }
 
     const [orders, total] = await Promise.all([
@@ -360,6 +405,16 @@ export class OrderController {
       3600
     );
 
+    // Notify new order via Stream
+    await notifyOrderUpdate(
+      'ORDER_CREATED',
+      order.id,
+      order.orderNumber,
+      order.shopId,
+      'PENDING',
+      `New order ${order.orderNumber} received`
+    );
+
     sendSuccess(
       res,
       guestAccessToken ? { order, guestAccessToken } : order,
@@ -398,6 +453,17 @@ export class OrderController {
 
     // Invalidate cache
     await redis.del(`order:${id}`);
+
+    // Publish order update notification
+    await notifyOrderUpdate(
+      status === 'COMPLETED' ? 'ORDER_COMPLETED' : 
+      status === 'CANCELLED' ? 'ORDER_CANCELLED' : 'ORDER_UPDATED',
+      id,
+      updatedOrder.orderNumber,
+      updatedOrder.shopId,
+      status,
+      `Order ${updatedOrder.orderNumber} status changed to ${status}`
+    );
 
     sendSuccess(res, updatedOrder, `Order status updated to ${status}`);
   }
@@ -449,6 +515,16 @@ export class OrderController {
 
     // Invalidate cache
     await redis.del(`order:${id}`);
+
+    // Notify order cancelled
+    await notifyOrderUpdate(
+      'ORDER_CANCELLED',
+      updatedOrder.id,
+      updatedOrder.orderNumber,
+      updatedOrder.shopId,
+      'CANCELLED',
+      `Order ${updatedOrder.orderNumber} has been cancelled`
+    );
 
     sendSuccess(res, updatedOrder, 'Order cancelled successfully');
   }
