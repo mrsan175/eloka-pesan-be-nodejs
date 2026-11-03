@@ -1183,6 +1183,18 @@ Gunakan query `page`, `limit` (maksimal 50), dan `search` untuk pagination dan p
 Produk bersifat universal. Saat admin membuat produk, produk otomatis tersedia di seluruh outlet;
 staff hanya mengatur `ShopProduct.isVisible` untuk menyalakan atau mematikan produk pada outlet yang ditugaskan.
 
+Admin juga dapat mengelola kategori addon:
+
+```http
+GET    /api/v1/products/addon-categories
+POST   /api/v1/products/addon-categories
+PUT    /api/v1/products/addon-categories/:id
+DELETE /api/v1/products/addon-categories/:id
+Authorization: ******
+```
+
+Kategori yang masih digunakan oleh addon tidak dapat dihapus agar relasi addon dan aturan pilihan tetap aman.
+
 1. **Product options:**
    - Addon disimpan pada `ProductAddon` dan dikelompokkan melalui `category`
    - Ukuran seperti R/L menggunakan produk terpisah dengan label pada nama produk

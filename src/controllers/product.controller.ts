@@ -68,6 +68,9 @@ export class ProductController {
   static async updateAddonCategory(req: AuthRequest, res: Response): Promise<void> {
     const { id } = req.params;
     const { name, selectionMode } = req.body;
+    const existingCategory = await prisma.addonCategory.findUnique({ where: { id } });
+    if (!existingCategory) throw new NotFoundError('Addon category not found');
+
     const category = await prisma.addonCategory.update({
       where: { id },
       data: {
