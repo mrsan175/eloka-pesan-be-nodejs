@@ -1177,7 +1177,8 @@ GET /api/v1/products/admin/all-products
 Authorization: ******
 ```
 
-Admin-only endpoint yang mengembalikan seluruh produk beserta seluruh addon, termasuk addon yang sedang nonaktif.
+Admin-only endpoint yang mengembalikan produk beserta seluruh addon, termasuk addon yang sedang nonaktif.
+Gunakan query `page`, `limit` (maksimal 50), dan `search` untuk pagination dan pencarian server-side.
 
 1. **Product options:**
    - Addon disimpan pada `ProductAddon` dan dikelompokkan melalui `category`

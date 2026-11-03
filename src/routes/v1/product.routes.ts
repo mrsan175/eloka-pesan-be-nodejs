@@ -49,6 +49,12 @@ router.use(authenticate);
 
 router.get(
   '/admin/all-products',
+  [
+    query('page').optional().isInt({ min: 1 }),
+    query('limit').optional().isInt({ min: 1, max: 50 }),
+    query('search').optional().isString(),
+    validateRequest,
+  ],
   authorize(['ADMIN']),
   asyncHandler(ProductController.getAllProductsForAdmin)
 );

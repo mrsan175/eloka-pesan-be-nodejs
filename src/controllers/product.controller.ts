@@ -14,15 +14,40 @@ interface AuthRequest extends Request {
 
 export class ProductController {
   static async getAllProductsForAdmin(_req: AuthRequest, res: Response): Promise<void> {
-    const products = await prisma.product.findMany({
+    const { page = 1, limit = 20, search } = _req.query;
+    const pageNumber = Math.max(1, Number(page));
+    const pageSize = Math.min(50, Math.max(1, Number(limit)));
+    const skip = (pageNumber - 1) * pageSize;
+    const where: any = {};
+
+    if (search) {
+      where.OR = [
+        { name: { contains: String(search), mode: 'insensitive' } },
+        { category: { name: { contains: String(search), mode: 'insensitive' } } },
+        { addons: { some: { name: { contains: String(search), mode: 'insensitive' } } } },
+      ];
+    }
+
+    const [products, total] = await Promise.all([
+      prisma.product.findMany({
       include: {
         category: { select: { id: true, name: true, shopId: true } },
         addons: { include: { addonCategory: true }, orderBy: { name: 'asc' } },
       },
       orderBy: [{ categoryId: 'asc' }, { order: 'asc' }, { name: 'asc' }],
-    });
+        where,
+        skip,
+        take: pageSize,
+      }),
+      prisma.product.count({ where }),
+    ]);
 
-    sendSuccess(res, products, 'All products and addons retrieved successfully');
+    sendSuccess(res, products, 'All products and addons retrieved successfully', 200, {
+      page: pageNumber,
+      limit: pageSize,
+      total,
+      totalPages: Math.ceil(total / pageSize),
+    });
   }
 
   static async getAddonCategories(_req: Request, res: Response): Promise<void> {
