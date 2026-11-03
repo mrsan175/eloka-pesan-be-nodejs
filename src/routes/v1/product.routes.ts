@@ -49,7 +49,7 @@ router.post(
     body('name').notEmpty().withMessage('Name is required'),
     validateRequest,
   ],
-  authorize(['ADMIN', 'STAFF']),
+  authorize(['ADMIN']),
   asyncHandler(ProductController.createCategory)
 );
 
@@ -60,14 +60,14 @@ router.put(
     body('name').optional().notEmpty().withMessage('Name cannot be empty'),
     validateRequest,
   ],
-  authorize(['ADMIN', 'STAFF']),
+  authorize(['ADMIN']),
   asyncHandler(ProductController.updateCategory)
 );
 
 router.delete(
   '/categories/:id',
   [param('id').isString().notEmpty().withMessage('Invalid category ID'), validateRequest],
-  authorize(['ADMIN', 'STAFF']),
+  authorize(['ADMIN']),
   asyncHandler(ProductController.deleteCategory)
 );
 
@@ -81,7 +81,7 @@ router.post(
     body('price').isFloat({ min: 0 }).withMessage('Price must be non-negative number'),
     validateRequest,
   ],
-  authorize(['ADMIN', 'STAFF']),
+  authorize(['ADMIN']),
   asyncHandler(ProductController.createProduct)
 );
 
@@ -93,21 +93,21 @@ router.put(
     body('price').optional().isFloat({ min: 0 }).withMessage('Price must be non-negative number'),
     validateRequest,
   ],
-  authorize(['ADMIN', 'STAFF']),
+  authorize(['ADMIN']),
   asyncHandler(ProductController.updateProduct)
 );
 
 router.delete(
   '/:id',
   [param('id').isString().notEmpty().withMessage('Invalid product ID'), validateRequest],
-  authorize(['ADMIN', 'STAFF']),
+  authorize(['ADMIN']),
   asyncHandler(ProductController.deleteProduct)
 );
 
 router.post(
   '/:id/toggle-availability',
   [param('id').isString().notEmpty().withMessage('Invalid product ID'), validateRequest],
-  authorize(['ADMIN', 'STAFF']),
+  authorize(['ADMIN']),
   asyncHandler(ProductController.toggleProductAvailability)
 );
 
@@ -118,7 +118,7 @@ router.post(
     param('shopId').isString().notEmpty(),
     validateRequest,
   ],
-  authorize(['ADMIN', 'STAFF']),
+  authorize(['ADMIN']),
   asyncHandler(ProductController.toggleProductVisibility)
 );
 
@@ -132,14 +132,14 @@ router.post(
     body('price').isFloat({ min: 0 }).withMessage('Price must be non-negative number'),
     validateRequest,
   ],
-  authorize(['ADMIN', 'STAFF']),
+  authorize(['ADMIN']),
   asyncHandler(ProductController.addProductAddon)
 );
 
 router.delete(
   '/addons/:id',
   [param('id').isString().notEmpty().withMessage('Invalid addon ID'), validateRequest],
-  authorize(['ADMIN', 'STAFF']),
+  authorize(['ADMIN']),
   asyncHandler(ProductController.removeProductAddon)
 );
 

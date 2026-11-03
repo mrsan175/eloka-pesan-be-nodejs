@@ -631,7 +631,7 @@ dapat melihat produk outlet assignment-nya untuk mengelola visibility.
 
 ---
 
-#### 4. Create Category (Admin/Staff)
+#### 4. Create Category (Admin Only)
 ```http
 POST /api/v1/products/categories
 Authorization: Bearer <accessToken>
@@ -647,7 +647,7 @@ Content-Type: application/json
 
 ---
 
-#### 5. Update Category (Admin/Staff)
+#### 5. Update Category (Admin Only)
 ```http
 PUT /api/v1/products/categories/:id
 Authorization: Bearer <accessToken>
@@ -661,7 +661,7 @@ Content-Type: application/json
 
 ---
 
-#### 6. Delete Category (Admin/Staff)
+#### 6. Delete Category (Admin Only)
 ```http
 DELETE /api/v1/products/categories/:id
 Authorization: Bearer <accessToken>
@@ -669,7 +669,7 @@ Authorization: Bearer <accessToken>
 
 ---
 
-#### 7. Create Product (Admin/Staff)
+#### 7. Create Product (Admin Only)
 ```http
 POST /api/v1/products
 Authorization: Bearer <accessToken>
@@ -690,7 +690,7 @@ Content-Type: application/json
 
 ---
 
-#### 8. Update Product (Admin/Staff)
+#### 8. Update Product (Admin Only)
 ```http
 PUT /api/v1/products/:id
 Authorization: Bearer <accessToken>
@@ -705,7 +705,7 @@ Content-Type: application/json
 
 ---
 
-#### 9. Delete Product (Admin/Staff)
+#### 9. Delete Product (Admin Only)
 ```http
 DELETE /api/v1/products/:id
 Authorization: Bearer <accessToken>
@@ -713,7 +713,7 @@ Authorization: Bearer <accessToken>
 
 ---
 
-#### 10. Toggle Product Availability (Admin/Staff)
+#### 10. Toggle Product Availability (Admin Only)
 ```http
 POST /api/v1/products/:id/toggle-availability
 Authorization: Bearer <accessToken>
@@ -721,7 +721,7 @@ Authorization: Bearer <accessToken>
 
 ---
 
-#### 11. Add Product Option (Admin/Staff)
+#### 11. Add Product Option (Admin Only)
 ```http
 POST /api/v1/products/:productId/addons
 Authorization: Bearer <accessToken>
@@ -736,7 +736,7 @@ Content-Type: application/json
 
 ---
 
-#### 12. Remove Product Option (Admin/Staff)
+#### 12. Remove Product Option (Admin Only)
 ```http
 DELETE /api/v1/products/addons/:id
 Authorization: Bearer <accessToken>
@@ -1169,9 +1169,9 @@ Content-Type: application/json
 | Feature | ADMIN | STAFF | CUSTOMER |
 |---------|-------|-------|----------|
 | View shops & products | ✅ | ✅ | ✅ |
-| Create shop | ✅ | ✅ | ❌ |
+| Create shop | ✅ | ❌ | ❌ |
 | Delete shop | ✅ | ❌ | ❌ |
-| Manage products | ✅ | ✅ | ❌ |
+| Manage products | ✅ | Toggle visibility only | ❌ |
 | View orders | ✅ all outlets | ✅ assigned outlets | ❌ |
 | Update order status | ✅ | ✅ | ❌ |
 | Create order | ✅ | ✅ | ✅ |

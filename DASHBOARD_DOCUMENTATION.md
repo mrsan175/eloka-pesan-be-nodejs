@@ -140,15 +140,15 @@ backend/
 | GET | `/api/v1/products/:id` | Public | Get product detail (dengan product addons) |
 | GET | `/api/v1/products/shop/:shopId` | Public/Auth | Get produk yang visible pada outlet |
 | GET | `/api/v1/products/categories` | Public | Get all categories |
-| POST | `/api/v1/products/categories` | Admin/Staff | Create category |
-| PUT | `/api/v1/products/categories/:id` | Admin/Staff | Update category |
-| DELETE | `/api/v1/products/categories/:id` | Admin/Staff | Delete category |
-| POST | `/api/v1/products` | Admin/Staff | Create product |
-| PUT | `/api/v1/products/:id` | Admin/Staff | Update product |
-| DELETE | `/api/v1/products/:id` | Admin/Staff | Delete product |
-| POST | `/api/v1/products/:id/toggle-availability` | Admin/Staff | Toggle availability |
-| POST | `/api/v1/products/:productId/addons` | Admin/Staff | Add addon |
-| DELETE | `/api/v1/products/addons/:id` | Admin/Staff | Delete addon |
+| POST | `/api/v1/products/categories` | Admin only | Create category |
+| PUT | `/api/v1/products/categories/:id` | Admin only | Update category |
+| DELETE | `/api/v1/products/categories/:id` | Admin only | Delete category |
+| POST | `/api/v1/products` | Admin only | Create product |
+| PUT | `/api/v1/products/:id` | Admin only | Update product |
+| DELETE | `/api/v1/products/:id` | Admin only | Delete product |
+| POST | `/api/v1/products/:id/toggle-availability` | Admin only | Toggle global availability |
+| POST | `/api/v1/products/:productId/addons` | Admin only | Add addon |
+| DELETE | `/api/v1/products/addons/:id` | Admin only | Delete addon |
 | POST | `/api/v1/products/:productId/shops/:shopId/toggle-visibility` | Admin/Staff assigned | Toggle visibility produk pada outlet |
 
 ### 3.5 Orders (Core untuk Dashboard)
@@ -203,10 +203,9 @@ GET /api/v1/orders?page=1&limit=20&status=PENDING&shopId=xxx&startDate=2024-01-0
    (triggers Redis pub/sub notification untuk real-time sync)
 4. PATCH /orders/:id/payment → Update payment
 5. GET /products/shop/:shopId → lihat produk universal yang visible pada outlet
-6. POST/PUT/DELETE /products → manage produk
-7. POST `/products/:productId/shops/:shopId/toggle-visibility` → tampilkan/sembunyikan produk pada outlet
-8. POST/PUT/DELETE /products/categories → Manage kategori
-9. Shop access limited to assigned outlet only (cannot create shops)
+6. POST `/products/:productId/shops/:shopId/toggle-visibility` → tampilkan/sembunyikan produk pada outlet
+7. Staff tidak dapat membuat, mengubah, menghapus produk, kategori, atau addon
+8. Shop access limited to assigned outlet only (cannot create shops)
 ```
 
 ### 4.4 Order Status Transition
@@ -264,7 +263,7 @@ total = subtotal + tax + deliveryFee - discount
 |-------|-------|-------|----------|
 | Manage all shops | ✅ | ❌ | ❌ |
 | **Create shop** | ✅ | ❌ | ❌ |
-| Manage products in assigned outlet | ✅ | ✅ | ❌ |
+| Manage products in assigned outlet | ✅ | Toggle visibility only | ❌ |
 | View orders (assigned outlet only) | ✅ | ✅ | ❌ |
 | Update order status | ✅ | ✅ | ❌ |
 | Manage users | ✅ | ❌ | ❌ |

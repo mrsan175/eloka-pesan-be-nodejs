@@ -295,15 +295,10 @@ npm test
 - `PATCH /api/v1/orders/:id/status` - Update order status
 - `PATCH /api/v1/orders/:id/payment` - Update payment status
 
-### Products - Staff/Admin
-- `POST /api/v1/products/categories` - Create category
-- `POST /api/v1/products` - Create product
-- `PUT /api/v1/products/:id` - Update product
-- `DELETE /api/v1/products/:id` - Delete product
-- `POST /api/v1/products/:id/toggle-availability` - Toggle availability
-- `POST /api/v1/products/:productId/addons` - Add pilihan produk
-- `DELETE /api/v1/products/addons/:id` - Delete pilihan produk
-- `POST /api/v1/products/:productId/shops/:shopId/toggle-visibility` - Toggle visibility produk per outlet
+### Products - Admin/Staff
+- Admin dapat membuat, mengubah, menghapus produk, kategori, dan pilihan produk.
+- Staff hanya dapat melihat produk outlet yang ditugaskan dan mengubah visibility produk per outlet.
+- `POST /api/v1/products/:productId/shops/:shopId/toggle-visibility` - Toggle visibility produk per outlet (Admin atau Staff assigned)
 
 ### Shops - Admin Only
 - `POST /api/v1/shops` - Create shop (Admin only)
