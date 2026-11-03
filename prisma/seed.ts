@@ -159,6 +159,8 @@ async function seedOutlets(outlets: OutletSeed[], region: 'makassar' | 'bogor'):
       },
     });
 
+    continue;
+
     for (const [categoryIndex, categoryName] of menuCategories.entries()) {
       await prisma.category.upsert({
         where: { id: categoryIds[categoryIndex] },
@@ -222,7 +224,6 @@ async function seedOutlets(outlets: OutletSeed[], region: 'makassar' | 'bogor'):
         await prisma.productAddon.upsert({
           where: { id: `${productId}-option-variant-${variantIndex + 1}` },
           update: {
-            name: variant?.[0] || `Pilihan ${variantIndex + 1}`,
             category: variantCategory,
             name: variant?.[1] || `Pilihan ${variantIndex + 1}`,
             selectionMode: ['ice', 'sugar'].includes(variantCategory.toLowerCase()) ? 'SINGLE' : 'MULTIPLE',
@@ -233,7 +234,6 @@ async function seedOutlets(outlets: OutletSeed[], region: 'makassar' | 'bogor'):
           create: {
             id: `${productId}-option-variant-${variantIndex + 1}`,
             productId,
-            name: variant?.[0] || `Pilihan ${variantIndex + 1}`,
             category: variantCategory,
             name: variant?.[1] || `Pilihan ${variantIndex + 1}`,
             selectionMode: ['ice', 'sugar'].includes(variantCategory.toLowerCase()) ? 'SINGLE' : 'MULTIPLE',
@@ -266,6 +266,139 @@ async function seedOutlets(outlets: OutletSeed[], region: 'makassar' | 'bogor'):
           },
         });
       }
+    }
+  }
+}
+
+async function seedUniversalCatalog(): Promise<void> {
+      const shopIds = [
+        ...makassarOutlets.map((_outlet, index) => `makassar-shop-${String(index + 1).padStart(2, '0')}`),
+        ...bogorOutlets.map((_outlet, index) => `bogor-shop-${String(index + 1).padStart(2, '0')}`),
+      ];
+      const primaryShopId = shopIds[0];
+      const categoryIds = menuCategories.map((_category, index) => `universal-category-${index + 1}`);
+
+      for (const shopId of shopIds) {
+        for (const [categoryIndex, categoryName] of menuCategories.entries()) {
+          await prisma.category.upsert({
+            where: { id: `${shopId}-${categoryIds[categoryIndex]}` },
+            update: { name: categoryName, shopId, isActive: true },
+            create: {
+              id: `${shopId}-${categoryIds[categoryIndex]}`,
+              shopId,
+              name: categoryName,
+              description: `${categoryName} universal Eloka`,
+              order: categoryIndex + 1,
+            },
+          });
+        }
+      }
+
+      const addonCategories = {
+        sugar: await prisma.addonCategory.upsert({
+          where: { name: 'Sugar Level' },
+          update: { selectionMode: 'SINGLE' },
+          create: { name: 'Sugar Level', selectionMode: 'SINGLE' },
+        }),
+        temperature: await prisma.addonCategory.upsert({
+          where: { name: 'Temperature' },
+          update: { selectionMode: 'SINGLE' },
+          create: { name: 'Temperature', selectionMode: 'SINGLE' },
+        }),
+        topping: await prisma.addonCategory.upsert({
+          where: { name: 'Topping' },
+          update: { selectionMode: 'MULTIPLE' },
+          create: { name: 'Topping', selectionMode: 'MULTIPLE' },
+        }),
+      };
+
+      for (const [menuIndex, [menuName, description, price]] of menuCatalog.entries()) {
+        const productId = `universal-product-${menuIndex + 1}`;
+        const categoryIndex = menuIndex < 4 ? 0 : menuIndex < 8 ? 1 : menuIndex < 13 ? 2 : 3;
+        const categoryId = `${primaryShopId}-${categoryIds[categoryIndex]}`;
+
+        await prisma.product.upsert({
+          where: { id: productId },
+          update: { name: menuName, description, price, categoryId, isAvailable: true },
+          create: {
+            id: productId,
+            categoryId,
+            name: menuName,
+            description,
+            price,
+            isAvailable: true,
+            isPopular: menuIndex % 5 === 0,
+            order: menuIndex + 1,
+          },
+        });
+
+        for (const shopId of shopIds) {
+          await prisma.shopProduct.upsert({
+            where: { shopId_productId: { shopId, productId } },
+            update: { isVisible: true },
+            create: { shopId, productId, isVisible: true },
+          });
+        }
+
+        const variants = menuVariants[menuIndex] || [];
+        for (let variantIndex = 0; variantIndex < variants.length; variantIndex++) {
+          const variant = variants[variantIndex];
+          if (variant?.[0] === 'Size') continue;
+          const addonCategory = variant?.[0] === 'Suhu'
+            ? addonCategories.temperature
+            : addonCategories.topping;
+          await prisma.productAddon.upsert({
+            where: { id: `${productId}-variant-${variantIndex + 1}` },
+            update: {
+              name: variant?.[1] || `Pilihan ${variantIndex + 1}`,
+              addonCategoryId: addonCategory.id,
+              category: addonCategory.name,
+              selectionMode: addonCategory.selectionMode,
+              price: (variant?.[2] || 0).toString(),
+              isAvailable: Boolean(variant),
+              productId,
+            },
+            create: {
+              id: `${productId}-variant-${variantIndex + 1}`,
+              productId,
+              name: variant?.[1] || `Pilihan ${variantIndex + 1}`,
+              addonCategoryId: addonCategory.id,
+              category: addonCategory.name,
+              selectionMode: addonCategory.selectionMode,
+              price: (variant?.[2] || 0).toString(),
+              isAvailable: Boolean(variant),
+            },
+          });
+        }
+
+        const addons = menuAddons[menuIndex] || [];
+        for (let addonIndex = 0; addonIndex < addons.length; addonIndex++) {
+          const addon = addons[addonIndex];
+          const addonCategory = addon?.[0].toLowerCase().includes('sugar')
+            ? addonCategories.sugar
+            : addonCategories.topping;
+          await prisma.productAddon.upsert({
+            where: { id: `${productId}-addon-${addonIndex + 1}` },
+            update: {
+              name: addon?.[0] || `Add-on ${addonIndex + 1}`,
+              addonCategoryId: addonCategory.id,
+              category: addonCategory.name,
+              selectionMode: addonCategory.selectionMode,
+              price: (addon?.[1] || 0).toString(),
+              isAvailable: Boolean(addon),
+              productId,
+            },
+            create: {
+              id: `${productId}-addon-${addonIndex + 1}`,
+              productId,
+              name: addon?.[0] || `Add-on ${addonIndex + 1}`,
+              addonCategoryId: addonCategory.id,
+              category: addonCategory.name,
+              selectionMode: addonCategory.selectionMode,
+              price: (addon?.[1] || 0).toString(),
+              isAvailable: Boolean(addon),
+            },
+          });
     }
   }
 }
@@ -314,128 +447,14 @@ async function main() {
     },
   });
 
-  // Create Coffee Shop
-  const shop = await prisma.shop.upsert({
-    where: { id: 'shop-demo-1' },
-    update: {},
-    create: {
-      id: 'shop-demo-1',
-      name: 'Eloka Coffee & Eatery',
-      description: 'Artisan coffee and comfort food',
-      address: 'Jl. Senopati No. 88, Kebayoran Baru, Jakarta Selatan',
-      phone: '+62215551234',
-      email: 'info@elokacoffee.com',
-      openTime: '07:00',
-      closeTime: '22:00',
-      isOpen: true,
-    },
-  });
-
-  // Categories
-  const coffeeCat = await prisma.category.create({
-    data: {
-      shopId: shop.id,
-      name: 'Coffee',
-      description: 'Espresso-based coffee drinks',
-      order: 1,
-    },
-  });
-
-  const nonCoffeeCat = await prisma.category.create({
-    data: {
-      shopId: shop.id,
-      name: 'Non-Coffee',
-      description: 'Tea, chocolate, and refreshers',
-      order: 2,
-    },
-  });
-
-  const foodCat = await prisma.category.create({
-    data: {
-      shopId: shop.id,
-      name: 'Food & Pastry',
-      description: 'Snacks, pastry, and heavy meals',
-      order: 3,
-    },
-  });
-
-  // Products - Coffee
-  await prisma.product.create({
-    data: {
-      categoryId: coffeeCat.id,
-      name: 'Iced Americano',
-      description: 'Espresso shot topped with cold water and ice',
-      price: 28000,
-      isAvailable: true,
-      isPopular: true,
-      order: 1,
-      shopProducts: { create: { shopId: shop.id } },
-      addons: {
-        create: [
-          { name: 'Regular', category: 'Size', price: 0 },
-          { name: 'Large', category: 'Size', price: 5000 },
-          { name: 'Extra Shot', price: 6000 },
-          { name: 'Vanilla Syrup', price: 5000 },
-        ],
-      },
-    },
-  });
-
-  await prisma.product.create({
-    data: {
-      categoryId: coffeeCat.id,
-      name: 'Caffe Latte',
-      description: 'Rich espresso balanced with steamed milk and thin foam',
-      price: 35000,
-      isAvailable: true,
-      isPopular: true,
-      order: 2,
-      shopProducts: { create: { shopId: shop.id } },
-      addons: {
-        create: [
-          { name: 'Hot', category: 'Temperature', price: 0 },
-          { name: 'Iced', category: 'Temperature', price: 2000 },
-          { name: 'Oat Milk Sub', price: 10000 },
-          { name: 'Caramel Drizzle', price: 5000 },
-          { name: 'Extra Shot', price: 6000 },
-        ],
-      },
-    },
-  });
-
-  // Non-Coffee
-  await prisma.product.create({
-    data: {
-      categoryId: nonCoffeeCat.id,
-      name: 'Matcha Latte',
-      description: 'Pure Uji matcha with fresh steamed milk',
-      price: 38000,
-      isAvailable: true,
-      isPopular: true,
-      order: 1,
-    },
-  });
-
-  // Food
-  await prisma.product.create({
-    data: {
-      categoryId: foodCat.id,
-      name: 'Butter Croissant',
-      description: 'Flaky, buttery classic French pastry',
-      price: 25000,
-      isAvailable: true,
-      order: 1,
-    },
-  });
-
   await seedOutlets(makassarOutlets, 'makassar');
   await seedOutlets(bogorOutlets, 'bogor');
+  await seedUniversalCatalog();
 
   console.log('Seed completed successfully!');
   console.log({
     admin: admin.email,
     customer: customer.email,
-    shop: shop.name,
     makassarOutlets: makassarOutlets.length,
     bogorOutlets: bogorOutlets.length,
     outletStaffAccountPassword: 'outlet123',
