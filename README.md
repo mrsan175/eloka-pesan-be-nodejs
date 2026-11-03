@@ -7,12 +7,14 @@
 Eloka Pesan adalah REST API backend yang mendukung sistem pemesanan makanan dengan fitur lengkap:
 
 - ✅ **Multi-type Orders**: Dine-in, Takeaway, Delivery
-- ✅ **Role-Based Access Control**: Admin, Staff, Customer
+- ✅ **Role-Based Access Control**: Admin, Staff (limited to assigned outlet), Customer
 - ✅ **Product Customization**: Variants & Addons
 - ✅ **Smart Calculation**: Auto-calculate subtotal, tax (PPN 11%), delivery fee
 - ✅ **Order Lifecycle**: Status management dari PENDING hingga COMPLETED
-- ✅ **JWT Authentication**: Access token + Refresh token dengan Redis
-- ✅ **API Documentation**: Swagger UI terintegrasi
+- ✅ **JWT Authentication**: Access token + Refresh token dengan Redis session cache
+- ✅ **Redis Streams Notifikasi**: Real-time order events dengan history replay
+- ✅ **Redis Geolocation**: Find nearby shops dengan Redis GEO
+- ✅ **API Documentation**: Swagger UI & Dashboard Docs terintegrasi
 - ✅ **Unit Tests**: 95 tests dengan 76% coverage
 
 ---
@@ -89,12 +91,13 @@ Password: admin123
 Role: ADMIN
 ```
 
-### Staff
+### Outlet Staff (Dibuat Per Outlet)
 ```
-Email: staff@elokapesan.com
-Password: staff123
+Email: {region}-outlet{number}@elokapesan.com (misal: makassar-outlet1@elokapesan.com)
+Password: outlet123
 Role: STAFF
 ```
+Staff hanya bisa mengakses data outlet yang di-assign. Staff tidak bisa membuat shop.
 
 ### Customer
 ```
@@ -108,6 +111,7 @@ Role: CUSTOMER
 ## 📚 Documentation
 
 - **API Documentation**: [API_DOCUMENTATION.md](./API_DOCUMENTATION.md)
+- **Dashboard Documentation**: [DASHBOARD_DOCUMENTATION.md](./DASHBOARD_DOCUMENTATION.md)
 - **Swagger UI**: http://localhost:3000/api/v1/docs
 - **Test Summary**: [TEST_SUMMARY.md](./TEST_SUMMARY.md)
 
@@ -158,14 +162,19 @@ backend/
 │   │   ├── user.controller.ts
 │   │   ├── shop.controller.ts
 │   │   ├── product.controller.ts
-│   │   └── order.controller.ts
+│   │   ├── order.controller.ts
+│   │   └── payment.controller.ts
 │   ├── middleware/          # Express middleware
 │   │   ├── auth.ts          # JWT authentication
-│   │   ├── errorHandler.ts # Global error handler
-│   │   ├── rateLimiter.ts  # Rate limiting
+│   │   ├── sessionCache.ts  # Redis session caching
+│   │   ├── errorHandler.ts  # Global error handler
+│   │   ├── rateLimiter.ts   # Rate limiting
 │   │   └── validateRequest.ts
 │   ├── routes/              # API routes
 │   │   └── v1/              # API version 1
+│   ├── services/            # Business logic
+│   │   ├── geolocation.service.ts  # Redis GEO nearby shops
+│   │   └── notification.service.ts # Redis Streams notifications
 │   ├── utils/               # Utility functions
 │   │   ├── asyncHandler.ts
 │   │   ├── errors.ts        # Custom error classes
@@ -294,8 +303,10 @@ npm test
 - `POST /api/v1/products/:productId/variants` - Add variant
 - `POST /api/v1/products/:productId/addons` - Add addon
 
+### Shops - Admin Only
+- `POST /api/v1/shops` - Create shop (Admin only)
+
 ### Shops - Staff/Admin
-- `POST /api/v1/shops` - Create shop
 - `PUT /api/v1/shops/:id` - Update shop
 - `DELETE /api/v1/shops/:id` - Delete shop (Admin only)
 - `POST /api/v1/shops/:id/toggle-status` - Toggle shop status
@@ -312,7 +323,7 @@ Lihat dokumentasi lengkap di [API_DOCUMENTATION.md](./API_DOCUMENTATION.md)
 | Framework | Express.js |
 | ORM | Prisma |
 | Database | PostgreSQL (Neon) |
-| Cache | Redis |
+| Cache/Streams | Redis (Session Cache, Geolocation, Order Notifications) |
 | Auth | JWT (jsonwebtoken) |
 | Validation | express-validator |
 | Logging | Winston |
@@ -467,8 +478,8 @@ Untuk pertanyaan atau bantuan:
 
 ---
 
-**Version:** 1.0.0  
-**Last Updated:** October 28, 2026
+**Version:** 1.1.0  
+**Last Updated:** November 4, 2026
 
 ---
 
