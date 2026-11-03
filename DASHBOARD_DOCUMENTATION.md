@@ -66,7 +66,6 @@ backend/
 | **Category** | id, shopId, name, description, image, order, isActive |
 | **Product** | id, categoryId, name, description, price (Decimal), image, isAvailable, isPopular, stock |
 | **ProductAddon** | id, productId, name, category, optionName?, price, isAvailable. Addon dikelompokkan per kategori |
-| **ProductSize** | id, productId, name, price, isAvailable, order. Ukuran khusus per produk |
 | **ShopProduct** | shopId, productId, isVisible. Menentukan visibility produk universal per outlet |
 
 ### 2.4 Order Management (PENTING untuk Dashboard)
@@ -152,7 +151,6 @@ backend/
 | DELETE | `/api/v1/products/addons/:id` | Admin only | Delete addon |
 | POST | `/api/v1/products/:productId/shops/:shopId/toggle-visibility` | Admin/Staff assigned | Toggle visibility produk pada outlet |
 | POST | `/api/v1/products/addons/:addonId/shops/:shopId/toggle-availability` | Admin/Staff assigned | Toggle availability addon |
-| POST | `/api/v1/products/:productId/sizes` | Admin only | Tambah ukuran khusus produk |
 
 ### 3.5 Orders (Core untuk Dashboard)
 
@@ -253,7 +251,7 @@ CANCELLED   CANCELLED    CANCELLED    CANCELLED
 ## 5. Perhitungan Harga
 
 ```
-subtotal = Σ [(productSizePrice atau productPrice) + addonPrice] × quantity
+subtotal = Σ (productPrice + addonPrice) × quantity
 tax = subtotal × 0.11 (PPN 11%)
 deliveryFee = 5000 (hanya untuk orderType = DELIVERY)
 total = subtotal + tax + deliveryFee - discount

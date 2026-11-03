@@ -20,7 +20,6 @@ router.post(
     body('items.*.productId').notEmpty().withMessage('Product ID is required in each item'),
     body('items.*.quantity').isInt({ min: 1 }).withMessage('Quantity must be at least 1'),
     body('items.*.addonIds').optional().isArray().withMessage('addonIds must be an array'),
-    body('items.*.sizeId').optional().isString().withMessage('sizeId must be a string'),
     body('notes').optional().isString(),
     validateRequest,
   ],

@@ -217,27 +217,7 @@ async function seedOutlets(outlets: OutletSeed[], region: 'makassar' | 'bogor'):
       const variants = menuVariants[menuIndex] || [];
       for (let variantIndex = 0; variantIndex < variants.length; variantIndex++) {
         const variant = variants[variantIndex];
-        if (variant?.[0] === 'Size') {
-          await prisma.productSize.upsert({
-            where: { id: `${productId}-size-${variantIndex + 1}` },
-            update: {
-              name: variant[1],
-              price: Number(price) + variant[2],
-              isAvailable: true,
-              productId,
-              order: variantIndex,
-            },
-            create: {
-              id: `${productId}-size-${variantIndex + 1}`,
-              productId,
-              name: variant[1],
-              price: Number(price) + variant[2],
-              isAvailable: true,
-              order: variantIndex,
-            },
-          });
-          continue;
-        }
+        if (variant?.[0] === 'Size') continue;
         await prisma.productAddon.upsert({
           where: { id: `${productId}-option-variant-${variantIndex + 1}` },
           update: {

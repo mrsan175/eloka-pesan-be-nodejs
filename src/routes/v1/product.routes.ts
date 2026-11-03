@@ -137,19 +137,6 @@ router.post(
   asyncHandler(ProductController.addProductAddon)
 );
 
-router.post(
-  '/:productId/sizes',
-  [
-    param('productId').isString().notEmpty().withMessage('Invalid product ID'),
-    body('name').notEmpty().withMessage('Size name is required'),
-    body('price').isFloat({ min: 0 }).withMessage('Size price must be non-negative number'),
-    body('order').optional().isInt({ min: 0 }),
-    validateRequest,
-  ],
-  authorize(['ADMIN']),
-  asyncHandler(ProductController.addProductSize)
-);
-
 router.delete(
   '/addons/:id',
   [param('id').isString().notEmpty().withMessage('Invalid addon ID'), validateRequest],
