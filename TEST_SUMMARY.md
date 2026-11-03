@@ -15,7 +15,7 @@ Time:        21.608 s
 - **Controllers**: 76.06% statements, 57.69% branches, 76.78% functions
   - AuthController: 71.42% (login, register, refresh token, logout)
   - OrderController: 77.12% (create, get, update status, cancel)
-  - ProductController: 55.44% (CRUD operations, variants, addons)
+  - ProductController: 55.44% (CRUD operations, product addons, outlet visibility)
   - ShopController: 100% (CRUD operations)
   - UserController: 98.21% (profile, update, address management)
 
@@ -46,7 +46,7 @@ Time:        21.608 s
    - Update/delete category
    - Create/update/delete product
    - Toggle product availability
-   - Add/remove variants and addons
+   - Add/remove product addons/options
 
 4. **order.controller.test.ts** (40 tests)
    - Create order with calculation
@@ -80,11 +80,12 @@ Time:        21.608 s
 ## Key Features Tested
 
 ✅ JWT Authentication with refresh tokens
-✅ Role-based access control (ADMIN, OWNER, STAFF, USER)
+✅ Role-based access control (ADMIN, STAFF, CUSTOMER)
 ✅ Order calculation (subtotal + PPN 11% + delivery fee)
 ✅ Order status lifecycle validation
 ✅ Address management with primary flag
-✅ Product variants and addons
+✅ Unified product addons/options
+✅ Per-outlet product visibility via ShopProduct
 ✅ Input validation and error handling
 ✅ Pagination
 ✅ Redis caching operations

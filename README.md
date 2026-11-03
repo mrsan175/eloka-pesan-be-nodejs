@@ -8,7 +8,7 @@ Eloka Pesan adalah REST API backend yang mendukung sistem pemesanan makanan deng
 
 - ✅ **Multi-type Orders**: Dine-in, Takeaway, Delivery
 - ✅ **Role-Based Access Control**: Admin, Staff (limited to assigned outlet), Customer
-- ✅ **Product Customization**: Variants & Addons
+- ✅ **Product Customization**: Unified product options and outlet visibility
 - ✅ **Smart Calculation**: Auto-calculate subtotal, tax (PPN 11%), delivery fee
 - ✅ **Order Lifecycle**: Status management dari PENDING hingga COMPLETED
 - ✅ **JWT Authentication**: Access token + Refresh token dengan Redis session cache
@@ -204,8 +204,9 @@ backend/
 - **Shop**: Restoran/coffee shop
 - **Category**: Kategori produk (Coffee, Food, dll)
 - **Product**: Menu item dengan price, availability, stock
-- **ProductVariant**: Varian produk (Size: Small/Large, Temperature: Hot/Iced)
-- **ProductAddon**: Addon produk (Extra Shot, Whipped Cream)
+- **ProductAddon**: Pilihan produk gabungan (size, temperature, dan addon) dengan `optionName` opsional
+- **ShopProduct**: Relasi visibility produk universal pada outlet tertentu
+- **ShopStaff**: Assignment staff ke outlet; satu outlet dapat memiliki banyak staff
 - **Order**: Pesanan dengan calculation otomatis
 - **OrderItem**: Item dalam pesanan
 - **Address**: Alamat pengiriman user
@@ -214,7 +215,7 @@ backend/
 ### Order Calculation Logic
 
 ```typescript
-Subtotal = Σ (Product Price + Variant Adjustments) × Quantity + Addon Prices
+Subtotal = Σ (Product Price + ProductAddon Prices) × Quantity
 Tax (PPN 11%) = Subtotal × 0.11
 Delivery Fee = Rp 5.000 (only for DELIVERY orders)
 Total = Subtotal + Tax + Delivery Fee - Discount
@@ -290,7 +291,7 @@ npm test
 - `POST /api/v1/orders/:id/cancel` - Cancel order
 
 ### Orders - Staff/Admin
-- `GET /api/v1/orders` - List all orders
+- `GET /api/v1/orders` - List orders (STAFF is restricted to assigned outlets)
 - `PATCH /api/v1/orders/:id/status` - Update order status
 - `PATCH /api/v1/orders/:id/payment` - Update payment status
 
@@ -300,8 +301,9 @@ npm test
 - `PUT /api/v1/products/:id` - Update product
 - `DELETE /api/v1/products/:id` - Delete product
 - `POST /api/v1/products/:id/toggle-availability` - Toggle availability
-- `POST /api/v1/products/:productId/variants` - Add variant
-- `POST /api/v1/products/:productId/addons` - Add addon
+- `POST /api/v1/products/:productId/addons` - Add pilihan produk
+- `DELETE /api/v1/products/addons/:id` - Delete pilihan produk
+- `POST /api/v1/products/:productId/shops/:shopId/toggle-visibility` - Toggle visibility produk per outlet
 
 ### Shops - Admin Only
 - `POST /api/v1/shops` - Create shop (Admin only)

@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/database';
-import { NotFoundError, BadRequestError } from '../utils/errors';
+import { NotFoundError, BadRequestError, ForbiddenError } from '../utils/errors';
 import { sendSuccess } from '../utils/response';
 import { findNearbyShops } from '../services/geolocation.service';
 
@@ -156,16 +156,12 @@ export class ShopController {
           orderBy: { order: 'asc' },
           include: {
             products: {
-              where: { isAvailable: true },
-              orderBy: { order: 'asc' },
-              include: {
-                variants: {
-                  where: { isAvailable: true },
-                },
-                addons: {
-                  where: { isAvailable: true },
-                },
+              where: {
+                isAvailable: true,
+                shopProducts: { some: { shopId: id, isVisible: true } },
               },
+              orderBy: { order: 'asc' },
+              include: { addons: { where: { isAvailable: true } } },
             },
           },
         },
@@ -204,6 +200,8 @@ export class ShopController {
   static async updateShop(req: AuthRequest, res: Response): Promise<void> {
     const { id } = req.params;
     const { name, description, logo, address, phone, email, openTime, closeTime } = req.body;
+
+    await assertShopAccess(req, id);
 
     const existingShop = await prisma.shop.findUnique({
       where: { id },
@@ -260,6 +258,8 @@ export class ShopController {
   static async toggleShopStatus(req: AuthRequest, res: Response): Promise<void> {
     const { id } = req.params;
 
+    await assertShopAccess(req, id);
+
     const shop = await prisma.shop.findUnique({
       where: { id },
     });
@@ -278,6 +278,25 @@ export class ShopController {
       { isOpen: updatedShop.isOpen },
       `Shop is now ${updatedShop.isOpen ? 'open' : 'closed'}`
     );
+  }
+}
+
+async function assertShopAccess(req: AuthRequest, shopId: string): Promise<void> {
+  if (req.user?.role !== 'STAFF') {
+    return;
+  }
+
+  const assignment = await prisma.shopStaff.findUnique({
+    where: {
+      shopId_userId: {
+        shopId,
+        userId: req.user.id,
+      },
+    },
+  });
+
+  if (!assignment) {
+    throw new ForbiddenError('You do not have access to this shop');
   }
 }
 

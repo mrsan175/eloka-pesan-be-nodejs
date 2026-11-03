@@ -29,7 +29,8 @@ Eloka Pesan adalah sistem backend untuk pemesanan makanan dan minuman di restora
 
 - **Multiple order types**: Dine-in, Takeaway, Delivery
 - **Role-based access**: Admin, Staff, Customer
-- **Product variants & addons**: Size, temperature, extra shot, dll.
+- **Product options**: Size, temperature, extra shot, dll. disimpan di `ProductAddon`
+- **Outlet visibility**: Produk universal dapat ditampilkan/sembunyikan per outlet melalui `ShopProduct`
 - **Order management**: Status lifecycle dari PENDING hingga COMPLETED
 - **Auto-calculation**: Subtotal + PPN 11% + Ongkir (untuk delivery)
 
@@ -78,19 +79,19 @@ Berikut adalah akun yang sudah di-seed di database:
 ### 2. Staff Account
 ```json
 {
-  "email": "staff@elokapesan.com",
-  "password": "staff123",
+  "email": "makassar-outlet06@elokapesan.com",
+  "password": "outlet123",
   "role": "STAFF",
-  "name": "Barista Staff",
-  "phone": "+628222222222"
+  "name": "Staff Outlet 06",
+  "phone": "+6285210000006"
 }
 ```
 **Akses:**
-- Shop management (create, update, toggle status)
+- Shop management (update, toggle status untuk outlet assignment; tidak dapat create shop)
 - Product management (CRUD)
 - Category management (CRUD)
-- Order management (view all, update status, update payment)
-- Variant & Addon management
+- Order management (view assigned outlet orders, update status, update payment)
+- Product option management and per-outlet visibility
 
 ---
 
@@ -584,26 +585,25 @@ GET /api/v1/products/:id
       "name": "Coffee",
       "shopId": "shop-demo-1"
     },
-    "variants": [
+    "addons": [
       {
         "id": "clxxx...",
         "name": "Size",
         "optionName": "Regular",
-        "priceAdjust": "0.00",
+        "price": "0.00",
         "isAvailable": true
       },
       {
         "id": "clxxx...",
         "name": "Size",
         "optionName": "Large",
-        "priceAdjust": "5000.00",
+        "price": "5000.00",
         "isAvailable": true
-      }
-    ],
-    "addons": [
+      },
       {
         "id": "clxxx...",
         "name": "Extra Shot",
+        "optionName": null,
         "price": "6000.00",
         "isAvailable": true
       },
@@ -624,6 +624,10 @@ GET /api/v1/products/:id
 ```http
 GET /api/v1/products/shop/:shopId?categoryId=xxx
 ```
+
+Endpoint ini hanya mengembalikan produk dengan `Product.isAvailable=true` dan
+`ShopProduct.isVisible=true` untuk outlet tersebut. Staff yang terautentikasi
+dapat melihat produk outlet assignment-nya untuk mengelola visibility.
 
 ---
 
@@ -673,6 +677,7 @@ Content-Type: application/json
 
 {
   "categoryId": "clxxx...",
+  "shopId": "shop-demo-1",
   "name": "Cappuccino",
   "description": "Espresso with steamed milk and foam",
   "price": 32000,
@@ -716,44 +721,38 @@ Authorization: Bearer <accessToken>
 
 ---
 
-#### 11. Add Product Variant (Admin/Staff)
-```http
-POST /api/v1/products/:productId/variants
-Authorization: Bearer <accessToken>
-Content-Type: application/json
-
-{
-  "name": "Temperature",
-  "optionName": "Hot",
-  "priceAdjust": 0
-}
-```
-
----
-
-#### 12. Remove Product Variant (Admin/Staff)
-```http
-DELETE /api/v1/products/variants/:id
-Authorization: Bearer <accessToken>
-```
-
----
-
-#### 13. Add Product Addon (Admin/Staff)
+#### 11. Add Product Option (Admin/Staff)
 ```http
 POST /api/v1/products/:productId/addons
 Authorization: Bearer <accessToken>
 Content-Type: application/json
 
 {
-  "name": "Whipped Cream",
-  "price": 5000
+  "name": "Temperature",
+  "optionName": "Hot",
+  "price": 0
 }
 ```
 
 ---
 
-#### 14. Remove Product Addon (Admin/Staff)
+#### 12. Remove Product Option (Admin/Staff)
+```http
+DELETE /api/v1/products/addons/:id
+Authorization: Bearer <accessToken>
+```
+
+---
+
+#### 13. Toggle Product Visibility per Shop (Admin/Staff assigned)
+```http
+POST /api/v1/products/:productId/shops/:shopId/toggle-visibility
+Authorization: Bearer <accessToken>
+```
+
+---
+
+#### Remove Product Option
 ```http
 DELETE /api/v1/products/addons/:id
 Authorization: Bearer <accessToken>
@@ -816,7 +815,6 @@ Content-Type: application/json
           "id": "clxxx...",
           "name": "Iced Americano"
         },
-        "variants": [...],
         "addons": [...]
       }
     ]
@@ -932,24 +930,14 @@ Authorization: Bearer <accessToken>
           "id": "clxxx...",
           "name": "Iced Americano"
         },
-        "variants": [
-          {
-            "id": "clxxx...",
-            "variant": {
-              "id": "variant-id-1",
-              "name": "Size",
-              "optionName": "Large",
-              "priceAdjust": "5000.00"
-            }
-          }
-        ],
         "addons": [
           {
             "id": "clxxx...",
             "quantity": 1,
-            "addon": {
+            "productAddon": {
               "id": "addon-id-1",
               "name": "Extra Shot",
+              "optionName": null,
               "price": "6000.00"
             }
           }
@@ -1136,7 +1124,7 @@ Content-Type: application/json
 
 2. **Order Calculation:**
    ```
-   Subtotal = Sum of (Product Price + Variant Adjustments) × Quantity + Addon Prices
+   Subtotal = Sum of (Product Price + ProductAddon Prices) × Quantity
    Tax (PPN) = Subtotal × 11%
    Delivery Fee = Rp 5.000 (only for DELIVERY)
    Total = Subtotal + Tax + Delivery Fee - Discount
@@ -1161,15 +1149,15 @@ Content-Type: application/json
 
 ### Product Management
 
-1. **Variants:**
-   - Same product can have multiple variants (Size, Temperature, etc.)
-   - Each variant has price adjustment (positive or negative)
-   - Example: Regular (+Rp 0), Large (+Rp 5.000)
+1. **Product options:**
+   - Semua pilihan produk disimpan pada `ProductAddon`
+   - `optionName` dapat dipakai untuk kelompok pilihan seperti Size atau Temperature
+   - Harga pilihan disimpan pada kolom `price`
 
-2. **Addons:**
-   - Additional items with fixed prices
-   - Can be selected multiple times (quantity)
-   - Example: Extra Shot (Rp 6.000), Vanilla Syrup (Rp 5.000)
+2. **Outlet visibility:**
+   - Produk bersifat universal
+   - `ShopProduct.isVisible` mengatur tampil/sembunyi per outlet
+   - `Product.isAvailable` mengatur ketersediaan global
 
 3. **Availability:**
    - Products can be toggled available/unavailable
@@ -1184,7 +1172,7 @@ Content-Type: application/json
 | Create shop | ✅ | ✅ | ❌ |
 | Delete shop | ✅ | ❌ | ❌ |
 | Manage products | ✅ | ✅ | ❌ |
-| View all orders | ✅ | ✅ | ❌ |
+| View orders | ✅ all outlets | ✅ assigned outlets | ❌ |
 | Update order status | ✅ | ✅ | ❌ |
 | Create order | ✅ | ✅ | ✅ |
 | View own orders | ✅ | ✅ | ✅ |
@@ -1300,8 +1288,8 @@ POST http://localhost:3000/api/v1/auth/login
 Content-Type: application/json
 
 {
-  "email": "staff@elokapesan.com",
-  "password": "staff123"
+  "email": "makassar-outlet06@elokapesan.com",
+  "password": "outlet123"
 }
 
 # Update order status

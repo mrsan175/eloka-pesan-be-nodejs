@@ -19,7 +19,6 @@ router.post(
     body('items').isArray({ min: 1 }).withMessage('Items must be a non-empty array'),
     body('items.*.productId').notEmpty().withMessage('Product ID is required in each item'),
     body('items.*.quantity').isInt({ min: 1 }).withMessage('Quantity must be at least 1'),
-    body('items.*.variantIds').optional().isArray().withMessage('variantIds must be an array'),
     body('items.*.addonIds').optional().isArray().withMessage('addonIds must be an array'),
     body('notes').optional().isString(),
     validateRequest,

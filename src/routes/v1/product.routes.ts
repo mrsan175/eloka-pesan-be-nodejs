@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { body, param, query } from 'express-validator';
 import { validateRequest } from '../../middleware/validateRequest';
 import { asyncHandler } from '../../utils/asyncHandler';
-import { authenticate, authorize } from '../../middleware/auth';
+import { authenticate, authorize, optionalAuthenticate } from '../../middleware/auth';
 import { ProductController } from '../../controllers/product.controller';
 
 const router = Router();
@@ -26,15 +26,16 @@ router.get(
 );
 
 router.get(
-  '/:id',
-  [param('id').isString().notEmpty().withMessage('Invalid product ID'), validateRequest],
-  asyncHandler(ProductController.getProductById)
+  '/shop/:shopId',
+  optionalAuthenticate,
+  [param('shopId').isString().notEmpty().withMessage('Invalid shop ID'), validateRequest],
+  asyncHandler(ProductController.getProductsByShop)
 );
 
 router.get(
-  '/shop/:shopId',
-  [param('shopId').isString().notEmpty().withMessage('Invalid shop ID'), validateRequest],
-  asyncHandler(ProductController.getProductsByShop)
+  '/:id',
+  [param('id').isString().notEmpty().withMessage('Invalid product ID'), validateRequest],
+  asyncHandler(ProductController.getProductById)
 );
 
 // Protected routes - requires authentication
@@ -75,6 +76,7 @@ router.post(
   '/',
   [
     body('categoryId').notEmpty().withMessage('Category ID is required'),
+    body('shopId').notEmpty().withMessage('Shop ID is required'),
     body('name').notEmpty().withMessage('Name is required'),
     body('price').isFloat({ min: 0 }).withMessage('Price must be non-negative number'),
     validateRequest,
@@ -109,33 +111,24 @@ router.post(
   asyncHandler(ProductController.toggleProductAvailability)
 );
 
-// Product variant routes
 router.post(
-  '/:productId/variants',
+  '/:productId/shops/:shopId/toggle-visibility',
   [
-    param('productId').isString().notEmpty().withMessage('Invalid product ID'),
-    body('name').notEmpty().withMessage('Variant name is required'),
-    body('optionName').notEmpty().withMessage('Option name is required'),
-    body('priceAdjust').optional().isFloat().withMessage('Price adjustment must be a number'),
+    param('productId').isString().notEmpty(),
+    param('shopId').isString().notEmpty(),
     validateRequest,
   ],
   authorize(['ADMIN', 'STAFF']),
-  asyncHandler(ProductController.addProductVariant)
+  asyncHandler(ProductController.toggleProductVisibility)
 );
 
-router.delete(
-  '/variants/:id',
-  [param('id').isString().notEmpty().withMessage('Invalid variant ID'), validateRequest],
-  authorize(['ADMIN', 'STAFF']),
-  asyncHandler(ProductController.removeProductVariant)
-);
-
-// Product addon routes
+// Product option routes
 router.post(
   '/:productId/addons',
   [
     param('productId').isString().notEmpty().withMessage('Invalid product ID'),
     body('name').notEmpty().withMessage('Addon name is required'),
+    body('optionName').optional().isString(),
     body('price').isFloat({ min: 0 }).withMessage('Price must be non-negative number'),
     validateRequest,
   ],

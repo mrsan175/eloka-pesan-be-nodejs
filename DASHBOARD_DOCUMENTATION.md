@@ -57,7 +57,7 @@ backend/
 | | openTime/closeTime | String | Jam buka (HH:mm) |
 | | isOpen | Boolean | Status buka/tutup |
 
-**ShopStaff** - Relasi many-to-many antara User dan Shop (satu staff bisa di mehrere toko)
+**ShopStaff** - Relasi many-to-many antara User dan Shop (satu outlet dapat memiliki beberapa staff dan satu staff dapat ditugaskan ke beberapa outlet)
 
 ### 2.3 Product Management
 
@@ -65,8 +65,8 @@ backend/
 |-------|-------|------|------------|
 | **Category** | id, shopId, name, description, image, order, isActive |
 | **Product** | id, categoryId, name, description, price (Decimal), image, isAvailable, isPopular, stock |
-| **ProductVariant** | id, productId, name (Size), optionName (Regular/Large), priceAdjust |
-| **ProductAddon** | id, productId, name (Extra Shot), price |
+| **ProductAddon** | id, productId, name, optionName?, price, isAvailable. Menyatukan variant dan addon |
+| **ShopProduct** | shopId, productId, isVisible. Menentukan visibility produk universal per outlet |
 
 ### 2.4 Order Management (PENTING untuk Dashboard)
 
@@ -92,8 +92,7 @@ backend/
 | | createdAt/updatedAt | DateTime | Timestamps |
 
 **OrderItem** - Item dalam pesanan (productId, quantity, price, subtotal, notes)  
-**OrderItemVariant** - Variant yang dipilih per item  
-**OrderItemAddon** - Addon yang dipilih per item
+**OrderItemAddon** - Semua pilihan produk yang dipilih per item melalui `productAddonId`
 
 ---
 
@@ -138,8 +137,8 @@ backend/
 | Method | Endpoint | Akses | Keterangan |
 |--------|----------|-------|------------|
 | GET | `/api/v1/products` | Public | Get all products |
-| GET | `/api/v1/products/:id` | Public | Get product detail (dengan variants & addons) |
-| GET | `/api/v1/products/shop/:shopId` | Public | Get products by shop |
+| GET | `/api/v1/products/:id` | Public | Get product detail (dengan product addons) |
+| GET | `/api/v1/products/shop/:shopId` | Public/Auth | Get produk yang visible pada outlet |
 | GET | `/api/v1/products/categories` | Public | Get all categories |
 | POST | `/api/v1/products/categories` | Admin/Staff | Create category |
 | PUT | `/api/v1/products/categories/:id` | Admin/Staff | Update category |
@@ -148,10 +147,9 @@ backend/
 | PUT | `/api/v1/products/:id` | Admin/Staff | Update product |
 | DELETE | `/api/v1/products/:id` | Admin/Staff | Delete product |
 | POST | `/api/v1/products/:id/toggle-availability` | Admin/Staff | Toggle availability |
-| POST | `/api/v1/products/:productId/variants` | Admin/Staff | Add variant |
-| DELETE | `/api/v1/products/variants/:id` | Admin/Staff | Delete variant |
 | POST | `/api/v1/products/:productId/addons` | Admin/Staff | Add addon |
 | DELETE | `/api/v1/products/addons/:id` | Admin/Staff | Delete addon |
+| POST | `/api/v1/products/:productId/shops/:shopId/toggle-visibility` | Admin/Staff assigned | Toggle visibility produk pada outlet |
 
 ### 3.5 Orders (Core untuk Dashboard)
 
@@ -199,15 +197,16 @@ GET /api/v1/orders?page=1&limit=20&status=PENDING&shopId=xxx&startDate=2024-01-0
 ### 4.3 Dashboard Staff Outlet
 
 ```
-1. Login → dapat shopId dari ShopStaff (via /users/me atau cached session)
-2. GET /orders?shopId=<shopId>&status=PENDING → Pesanan masuk (auto-filtered)
+1. Login → outlet staff ditentukan oleh relasi `ShopStaff`
+2. GET /orders?shopId=<shopId>&status=PENDING → Pesanan masuk (backend tetap membatasi ke outlet assignment)
 3. PATCH /orders/:id/status → CONFIRMED → PREPARING → READY → COMPLETED
    (triggers Redis pub/sub notification untuk real-time sync)
 4. PATCH /orders/:id/payment → Update payment
-5. GET /products/shop/:shopId → Manage produk
-6. POST/PUT/DELETE /products → Manage produk
-7. POST/PUT/DELETE /products/categories → Manage kategori
-8. Shop access limited to assigned outlet only (cannot create shops)
+5. GET /products/shop/:shopId → lihat produk universal yang visible pada outlet
+6. POST/PUT/DELETE /products → manage produk
+7. POST `/products/:productId/shops/:shopId/toggle-visibility` → tampilkan/sembunyikan produk pada outlet
+8. POST/PUT/DELETE /products/categories → Manage kategori
+9. Shop access limited to assigned outlet only (cannot create shops)
 ```
 
 ### 4.4 Order Status Transition
@@ -223,7 +222,7 @@ CANCELLED   CANCELLED    CANCELLED    CANCELLED
 ```
 1. GET /shops → Pilih toko
 2. GET /products/shop/:id → Lihat produk
-3. GET /products/:id → Lihat variants & addons
+3. GET /products/:id → Lihat product addons/options
 4. POST /orders
    {
      shopId,
@@ -346,7 +345,7 @@ GET /orders?status=COMPLETED&startDate=...&endDate=...&shopId=xxx
 - **Total Revenue**: Filter `status=COMPLETED`, hitung field `total` dari response
 - **Orders Today**: Filter `startDate=hari ini`, `endDate=hari ini`
 - **Pending Orders**: Filter `status=PENDING`
-- **Active Products**: GET `/products?isAvailable=true&shopId=xxx`
+- **Visible Products per Outlet**: GET `/products/shop/:shopId` (ShopProduct.isVisible=true dan Product.isAvailable=true)
 
 ---
 
@@ -388,11 +387,12 @@ npm run dev           # Start dev server di localhost:3000
 5. Stats: hitung manual dari response atau buat endpoint baru di backend
 
 ### Untuk Staff Outlet Dashboard:
-1. Ambil shopId dari profile user (ShopStaff relation)
+1. Ambil outlet dari assignment `ShopStaff`
 2. GET /orders?shopId=<shopId>&status=PENDING → pesanan baru
 3. Auto-refresh setiap 10 detik untuk pesanan baru (atau subscribe ke Redis pub/sub via WebSocket)
 4. PATCH /orders/:id/status → update status
-5. GET /products/shop/:shopId → manage menu
+5. GET /products/shop/:shopId → manage menu universal yang tersedia untuk outlet
+6. POST /products/:productId/shops/:shopId/toggle-visibility → tampilkan/sembunyikan menu
 
 ---
 

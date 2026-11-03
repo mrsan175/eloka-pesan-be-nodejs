@@ -45,9 +45,6 @@ export class ProductController {
           category: {
             select: { id: true, name: true, shopId: true },
           },
-          variants: {
-            where: { isAvailable: true },
-          },
           addons: {
             where: { isAvailable: true },
           },
@@ -76,7 +73,6 @@ export class ProductController {
         category: {
           select: { id: true, name: true, shopId: true },
         },
-        variants: true,
         addons: true,
       },
     });
@@ -88,12 +84,17 @@ export class ProductController {
     sendSuccess(res, product, 'Product retrieved successfully');
   }
 
-  static async getProductsByShop(req: Request, res: Response): Promise<void> {
+  static async getProductsByShop(req: AuthRequest, res: Response): Promise<void> {
     const { shopId } = req.params;
     const { categoryId } = req.query;
 
     const where: any = {
-      category: { shopId },
+      shopProducts: {
+        some: {
+          shopId,
+          ...(req.user ? {} : { isVisible: true }),
+        },
+      },
     };
 
     if (categoryId) {
@@ -106,11 +107,12 @@ export class ProductController {
         category: {
           select: { id: true, name: true },
         },
-        variants: {
-          where: { isAvailable: true },
-        },
         addons: {
           where: { isAvailable: true },
+        },
+        shopProducts: {
+          where: { shopId },
+          select: { isVisible: true },
         },
       },
       orderBy: [{ order: 'asc' }, { createdAt: 'desc' }],
@@ -216,7 +218,7 @@ export class ProductController {
   }
 
   static async createProduct(req: AuthRequest, res: Response): Promise<void> {
-    const { categoryId, name, description, price, image, isAvailable, isPopular, stock, order } = req.body;
+    const { categoryId, shopId, name, description, price, image, isAvailable, isPopular, stock, order } = req.body;
 
     const category = await prisma.category.findUnique({
       where: { id: categoryId },
@@ -224,6 +226,11 @@ export class ProductController {
 
     if (!category) {
       throw new NotFoundError('Category not found');
+    }
+
+    if (shopId) {
+      const shop = await prisma.shop.findUnique({ where: { id: shopId } });
+      if (!shop) throw new NotFoundError('Shop not found');
     }
 
     const product = await prisma.product.create({
@@ -237,11 +244,17 @@ export class ProductController {
         isPopular: isPopular ?? false,
         stock,
         order: order || 0,
+        ...(shopId && {
+          shopProducts: {
+            create: { shopId },
+          },
+        }),
       },
       include: {
         category: {
           select: { id: true, name: true },
         },
+        shopProducts: true,
       },
     });
 
@@ -318,51 +331,36 @@ export class ProductController {
     );
   }
 
-  static async addProductVariant(req: AuthRequest, res: Response): Promise<void> {
-    const { productId } = req.params;
-    const { name, optionName, priceAdjust } = req.body;
-
-    const product = await prisma.product.findUnique({
-      where: { id: productId },
-    });
-
-    if (!product) {
-      throw new NotFoundError('Product not found');
+  static async toggleProductVisibility(req: AuthRequest, res: Response): Promise<void> {
+    const { productId, shopId } = req.params;
+    if (req.user?.role === 'STAFF') {
+      const assignment = await prisma.shopStaff.findUnique({
+        where: { shopId_userId: { shopId, userId: req.user.id } },
+      });
+      if (!assignment) {
+        throw new NotFoundError('Shop assignment not found');
+      }
     }
 
-    const variant = await prisma.productVariant.create({
-      data: {
-        productId,
-        name,
-        optionName,
-        priceAdjust: priceAdjust || 0,
-      },
+    const shopProduct = await prisma.shopProduct.findUnique({
+      where: { shopId_productId: { shopId, productId } },
     });
 
-    sendSuccess(res, variant, 'Variant added successfully', 201);
-  }
-
-  static async removeProductVariant(req: AuthRequest, res: Response): Promise<void> {
-    const { id } = req.params;
-
-    const variant = await prisma.productVariant.findUnique({
-      where: { id },
-    });
-
-    if (!variant) {
-      throw new NotFoundError('Variant not found');
+    if (!shopProduct) {
+      throw new NotFoundError('Product is not assigned to this shop');
     }
 
-    await prisma.productVariant.delete({
-      where: { id },
+    const updated = await prisma.shopProduct.update({
+      where: { id: shopProduct.id },
+      data: { isVisible: !shopProduct.isVisible },
     });
 
-    sendSuccess(res, null, 'Variant removed successfully');
+    sendSuccess(res, updated, 'Product visibility updated successfully');
   }
 
   static async addProductAddon(req: AuthRequest, res: Response): Promise<void> {
     const { productId } = req.params;
-    const { name, price } = req.body;
+    const { name, optionName, price } = req.body;
 
     const product = await prisma.product.findUnique({
       where: { id: productId },
@@ -376,7 +374,8 @@ export class ProductController {
       data: {
         productId,
         name,
-        price,
+        optionName,
+        price: price || 0,
       },
     });
 

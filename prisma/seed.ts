@@ -115,7 +115,7 @@ async function seedOutlets(outlets: OutletSeed[], region: 'makassar' | 'bogor'):
       (_category, categoryIndex) => `${region}-category-${number}-${categoryIndex + 1}`,
     );
 
-    await prisma.user.upsert({
+    const staff = await prisma.user.upsert({
       where: { email: `${region}-outlet${number}@elokapesan.com` },
       update: { name: `${name} Staff`, role: 'STAFF', password },
       create: {
@@ -142,6 +142,20 @@ async function seedOutlets(outlets: OutletSeed[], region: 'makassar' | 'bogor'):
         openTime,
         closeTime,
         isOpen: true,
+      },
+    });
+
+    await prisma.shopStaff.upsert({
+      where: {
+        shopId_userId: {
+          shopId,
+          userId: staff.id,
+        },
+      },
+      update: {},
+      create: {
+        shopId,
+        userId: staff.id,
       },
     });
 
@@ -187,26 +201,37 @@ async function seedOutlets(outlets: OutletSeed[], region: 'makassar' | 'bogor'):
         },
       });
 
+      await prisma.shopProduct.upsert({
+        where: {
+          shopId_productId: {
+            shopId,
+            productId,
+          },
+        },
+        update: { isVisible: true },
+        create: { shopId, productId, isVisible: true },
+      });
+
       const addons = menuAddons[menuIndex] || [];
 
       const variants = menuVariants[menuIndex] || [];
       for (let variantIndex = 0; variantIndex < 4; variantIndex++) {
         const variant = variants[variantIndex];
-        await prisma.productVariant.upsert({
-          where: { id: `${productId}-variant-${variantIndex + 1}` },
+        await prisma.productAddon.upsert({
+          where: { id: `${productId}-option-variant-${variantIndex + 1}` },
           update: {
             name: variant?.[0] || `Pilihan ${variantIndex + 1}`,
             optionName: variant?.[1] || `Tidak tersedia`,
-            priceAdjust: (variant?.[2] || 0).toString(),
+            price: (variant?.[2] || 0).toString(),
             isAvailable: Boolean(variant),
             productId,
           },
           create: {
-            id: `${productId}-variant-${variantIndex + 1}`,
+            id: `${productId}-option-variant-${variantIndex + 1}`,
             productId,
             name: variant?.[0] || `Pilihan ${variantIndex + 1}`,
             optionName: variant?.[1] || `Tidak tersedia`,
-            priceAdjust: (variant?.[2] || 0).toString(),
+            price: (variant?.[2] || 0).toString(),
             isAvailable: Boolean(variant),
           },
         });
@@ -215,17 +240,19 @@ async function seedOutlets(outlets: OutletSeed[], region: 'makassar' | 'bogor'):
       for (let addonIndex = 0; addonIndex < 4; addonIndex++) {
         const addon = addons[addonIndex];
         await prisma.productAddon.upsert({
-          where: { id: `${productId}-addon-${addonIndex + 1}` },
+          where: { id: `${productId}-option-addon-${addonIndex + 1}` },
           update: {
             name: addon?.[0] || `Add-on ${addonIndex + 1}`,
+            optionName: null,
             price: (addon?.[1] || 0).toString(),
             isAvailable: Boolean(addon),
             productId,
           },
           create: {
-            id: `${productId}-addon-${addonIndex + 1}`,
+            id: `${productId}-option-addon-${addonIndex + 1}`,
             productId,
             name: addon?.[0] || `Add-on ${addonIndex + 1}`,
+            optionName: null,
             price: (addon?.[1] || 0).toString(),
             isAvailable: Boolean(addon),
           },
@@ -334,14 +361,11 @@ async function main() {
       isAvailable: true,
       isPopular: true,
       order: 1,
-      variants: {
-        create: [
-          { name: 'Size', optionName: 'Regular', priceAdjust: 0 },
-          { name: 'Size', optionName: 'Large', priceAdjust: 5000 },
-        ],
-      },
+      shopProducts: { create: { shopId: shop.id } },
       addons: {
         create: [
+          { name: 'Size', optionName: 'Regular', price: 0 },
+          { name: 'Size', optionName: 'Large', price: 5000 },
           { name: 'Extra Shot', price: 6000 },
           { name: 'Vanilla Syrup', price: 5000 },
         ],
@@ -358,14 +382,11 @@ async function main() {
       isAvailable: true,
       isPopular: true,
       order: 2,
-      variants: {
-        create: [
-          { name: 'Temperature', optionName: 'Hot', priceAdjust: 0 },
-          { name: 'Temperature', optionName: 'Iced', priceAdjust: 2000 },
-        ],
-      },
+      shopProducts: { create: { shopId: shop.id } },
       addons: {
         create: [
+          { name: 'Temperature', optionName: 'Hot', price: 0 },
+          { name: 'Temperature', optionName: 'Iced', price: 2000 },
           { name: 'Oat Milk Sub', price: 10000 },
           { name: 'Caramel Drizzle', price: 5000 },
           { name: 'Extra Shot', price: 6000 },

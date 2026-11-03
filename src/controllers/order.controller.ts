@@ -19,7 +19,6 @@ interface AuthRequest extends Request {
 interface OrderItemInput {
   productId: string;
   quantity: number;
-  variantIds?: string[];
   addonIds?: string[];
   notes?: string;
 }
@@ -60,8 +59,7 @@ export class OrderController {
           items: {
             include: {
               product: { select: { id: true, name: true, image: true } },
-              variants: { include: { variant: true } },
-              addons: { include: { addon: true } },
+              addons: { include: { productAddon: true } },
             },
           },
         },
@@ -92,14 +90,9 @@ export class OrderController {
         items: {
           include: {
             product: { select: { id: true, name: true, image: true, price: true } },
-            variants: {
-              include: {
-                variant: { select: { id: true, name: true, optionName: true, priceAdjust: true } },
-              },
-            },
             addons: {
               include: {
-                addon: { select: { id: true, name: true, price: true } },
+                productAddon: { select: { id: true, name: true, optionName: true, price: true } },
               },
             },
           },
@@ -245,19 +238,18 @@ export class OrderController {
       if (!address) throw new NotFoundError('Address not found');
     }
 
-    // Fetch all products with their variants and addons
+    // Fetch products and verify that each one is enabled for the selected shop.
     const productIds = items.map((item) => item.productId);
     const products = await prisma.product.findMany({
       where: { id: { in: productIds } },
       include: {
-        variants: true,
         addons: true,
-        category: { select: { shopId: true } },
+        shopProducts: { where: { shopId, isVisible: true }, select: { shopId: true } },
       },
     });
 
     // Validate all products belong to the same shop
-    const invalidProducts = products.filter((p) => p.category.shopId !== shopId);
+    const invalidProducts = products.filter((p) => p.shopProducts.length === 0);
     if (invalidProducts.length > 0) {
       throw new BadRequestError('All products must belong to the same shop');
     }
@@ -281,23 +273,12 @@ export class OrderController {
       price: Decimal;
       subtotal: Decimal;
       notes?: string;
-      variantIds: string[];
       addonIds: string[];
     }> = [];
 
     for (const item of items) {
       const product = products.find((p) => p.id === item.productId)!;
       let itemPrice = product.price;
-
-      // Add variant price adjustments
-      if (item.variantIds && item.variantIds.length > 0) {
-        for (const variantId of item.variantIds) {
-          const variant = product.variants.find((v) => v.id === variantId);
-          if (!variant) throw new BadRequestError(`Variant ${variantId} not found for product ${product.name}`);
-          if (!variant.isAvailable) throw new BadRequestError(`Variant ${variant.optionName} is not available`);
-          itemPrice = itemPrice.add(variant.priceAdjust);
-        }
-      }
 
       // Add addon prices
       const addonIds: string[] = [];
@@ -320,7 +301,6 @@ export class OrderController {
         price: itemPrice,
         subtotal: itemSubtotal,
         notes: item.notes,
-        variantIds: item.variantIds || [],
         addonIds,
       });
     }
@@ -367,11 +347,8 @@ export class OrderController {
               price: item.price,
               subtotal: item.subtotal,
               notes: item.notes,
-              variants: {
-                create: item.variantIds.map((variantId) => ({ variantId })),
-              },
               addons: {
-                create: item.addonIds.map((addonId) => ({ addonId, quantity: 1 })),
+                create: item.addonIds.map((productAddonId) => ({ productAddonId, quantity: 1 })),
               },
             })),
           },
@@ -380,8 +357,7 @@ export class OrderController {
           items: {
             include: {
               product: { select: { id: true, name: true, image: true } },
-              variants: { include: { variant: true } },
-              addons: { include: { addon: true } },
+              addons: { include: { productAddon: true } },
             },
           },
           shop: { select: { id: true, name: true } },
