@@ -13,6 +13,18 @@ interface AuthRequest extends Request {
 }
 
 export class ProductController {
+  static async getAllProductsForAdmin(_req: AuthRequest, res: Response): Promise<void> {
+    const products = await prisma.product.findMany({
+      include: {
+        category: { select: { id: true, name: true, shopId: true } },
+        addons: { include: { addonCategory: true }, orderBy: { name: 'asc' } },
+      },
+      orderBy: [{ categoryId: 'asc' }, { order: 'asc' }, { name: 'asc' }],
+    });
+
+    sendSuccess(res, products, 'All products and addons retrieved successfully');
+  }
+
   static async getAddonCategories(_req: Request, res: Response): Promise<void> {
     const categories = await prisma.addonCategory.findMany({
       orderBy: { name: 'asc' },

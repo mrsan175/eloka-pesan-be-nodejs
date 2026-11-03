@@ -47,6 +47,12 @@ router.get(
 // Protected routes - requires authentication
 router.use(authenticate);
 
+router.get(
+  '/admin/all-products',
+  authorize(['ADMIN']),
+  asyncHandler(ProductController.getAllProductsForAdmin)
+);
+
 // Category routes
 router.post(
   '/categories',

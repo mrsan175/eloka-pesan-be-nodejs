@@ -1171,6 +1171,14 @@ Content-Type: application/json
 
 ### Product Management
 
+#### Admin Product & Addon Overview
+```http
+GET /api/v1/products/admin/all-products
+Authorization: ******
+```
+
+Admin-only endpoint yang mengembalikan seluruh produk beserta seluruh addon, termasuk addon yang sedang nonaktif.
+
 1. **Product options:**
    - Addon disimpan pada `ProductAddon` dan dikelompokkan melalui `category`
    - Ukuran seperti R/L menggunakan produk terpisah dengan label pada nama produk
