@@ -290,6 +290,17 @@ export class OrderController {
           itemPrice = itemPrice.add(addon.price);
           addonIds.push(addonId);
         }
+
+        const selectedAddons = product.addons.filter((addon) => addonIds.includes(addon.id));
+        const selectedByCategory = selectedAddons.reduce<Record<string, typeof selectedAddons>>((groups, addon) => {
+          (groups[addon.category] ||= []).push(addon);
+          return groups;
+        }, {});
+        for (const [category, categoryAddons] of Object.entries(selectedByCategory)) {
+          if (categoryAddons.some((addon) => addon.selectionMode === 'SINGLE') && categoryAddons.length > 1) {
+            throw new BadRequestError(`Only one addon can be selected in category ${category}`);
+          }
+        }
       }
 
       const itemSubtotal = itemPrice.mul(item.quantity);

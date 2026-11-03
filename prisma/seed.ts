@@ -218,12 +218,14 @@ async function seedOutlets(outlets: OutletSeed[], region: 'makassar' | 'bogor'):
       for (let variantIndex = 0; variantIndex < variants.length; variantIndex++) {
         const variant = variants[variantIndex];
         if (variant?.[0] === 'Size') continue;
+        const variantCategory = variant?.[0] || 'Lainnya';
         await prisma.productAddon.upsert({
           where: { id: `${productId}-option-variant-${variantIndex + 1}` },
           update: {
             name: variant?.[0] || `Pilihan ${variantIndex + 1}`,
-            category: variant?.[0] || 'Lainnya',
+            category: variantCategory,
             optionName: variant?.[1] || `Tidak tersedia`,
+            selectionMode: ['ice', 'sugar'].includes(variantCategory.toLowerCase()) ? 'SINGLE' : 'MULTIPLE',
             price: (variant?.[2] || 0).toString(),
             isAvailable: Boolean(variant),
             productId,
@@ -232,8 +234,9 @@ async function seedOutlets(outlets: OutletSeed[], region: 'makassar' | 'bogor'):
             id: `${productId}-option-variant-${variantIndex + 1}`,
             productId,
             name: variant?.[0] || `Pilihan ${variantIndex + 1}`,
-            category: variant?.[0] || 'Lainnya',
+            category: variantCategory,
             optionName: variant?.[1] || `Tidak tersedia`,
+            selectionMode: ['ice', 'sugar'].includes(variantCategory.toLowerCase()) ? 'SINGLE' : 'MULTIPLE',
             price: (variant?.[2] || 0).toString(),
             isAvailable: Boolean(variant),
           },
@@ -248,6 +251,7 @@ async function seedOutlets(outlets: OutletSeed[], region: 'makassar' | 'bogor'):
             name: addon?.[0] || `Add-on ${addonIndex + 1}`,
             category: 'Topping',
             optionName: null,
+            selectionMode: 'MULTIPLE',
             price: (addon?.[1] || 0).toString(),
             isAvailable: Boolean(addon),
             productId,
@@ -258,6 +262,7 @@ async function seedOutlets(outlets: OutletSeed[], region: 'makassar' | 'bogor'):
             name: addon?.[0] || `Add-on ${addonIndex + 1}`,
             category: 'Topping',
             optionName: null,
+            selectionMode: 'MULTIPLE',
             price: (addon?.[1] || 0).toString(),
             isAvailable: Boolean(addon),
           },

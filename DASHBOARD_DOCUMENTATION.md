@@ -65,7 +65,7 @@ backend/
 |-------|-------|------|------------|
 | **Category** | id, shopId, name, description, image, order, isActive |
 | **Product** | id, categoryId, name, description, price (Decimal), image, isAvailable, isPopular, stock |
-| **ProductAddon** | id, productId, name, category, optionName?, price, isAvailable. Addon dikelompokkan per kategori |
+| **ProductAddon** | id, productId, name, category, optionName?, selectionMode (`SINGLE`/`MULTIPLE`), price, isAvailable. Addon dikelompokkan per kategori |
 | **ShopProduct** | shopId, productId, isVisible. Menentukan visibility produk universal per outlet |
 
 ### 2.4 Order Management (PENTING untuk Dashboard)
@@ -149,6 +149,7 @@ backend/
 | DELETE | `/api/v1/products/:id` | Admin only | Delete product |
 | POST | `/api/v1/products/:id/toggle-availability` | Admin only | Toggle global availability |
 | POST | `/api/v1/products/:productId/addons` | Admin only | Add addon |
+| PUT | `/api/v1/products/addons/:id` | Admin only | Edit addon dan aturan pilihan |
 | DELETE | `/api/v1/products/addons/:id` | Admin only | Delete addon |
 | POST | `/api/v1/products/:productId/shops/:shopId/toggle-visibility` | Admin/Staff assigned | Toggle visibility produk pada outlet |
 | POST | `/api/v1/products/addons/:addonId/shops/:shopId/toggle-availability` | Admin/Staff assigned | Toggle availability addon |
@@ -206,8 +207,9 @@ GET /api/v1/orders?page=1&limit=20&status=PENDING&shopId=xxx&startDate=2024-01-0
 4. PATCH /orders/:id/payment → Update payment
 5. GET /products/shop/:shopId → lihat produk universal yang visible pada outlet
 6. POST `/products/:productId/shops/:shopId/toggle-visibility` → tampilkan/sembunyikan produk pada outlet
-7. POST `/products/addons/:addonId/shops/:shopId/toggle-availability` → aktifkan/nonaktifkan addon
-8. Staff tidak dapat membuat, mengubah, menghapus produk, kategori, atau addon
+7. PUT `/products/addons/:id` → admin mengubah nama, kategori, harga, atau aturan `SINGLE`/`MULTIPLE`
+8. POST `/products/addons/:addonId/shops/:shopId/toggle-availability` → aktifkan/nonaktifkan addon
+9. Staff tidak dapat membuat, mengubah, menghapus produk, kategori, atau addon
 9. Shop access limited to assigned outlet only (cannot create shops)
 
 ### 4.5 Notifications

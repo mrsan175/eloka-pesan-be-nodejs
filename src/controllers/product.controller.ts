@@ -360,7 +360,7 @@ export class ProductController {
 
   static async addProductAddon(req: AuthRequest, res: Response): Promise<void> {
     const { productId } = req.params;
-    const { name, category, optionName, price } = req.body;
+    const { name, category, optionName, selectionMode, price } = req.body;
 
     const product = await prisma.product.findUnique({
       where: { id: productId },
@@ -376,11 +376,35 @@ export class ProductController {
         name,
         category: category || name,
         optionName,
+        selectionMode: selectionMode || 'MULTIPLE',
         price: price || 0,
       },
     });
 
     sendSuccess(res, addon, 'Addon added successfully', 201);
+  }
+
+  static async updateProductAddon(req: AuthRequest, res: Response): Promise<void> {
+    const { id } = req.params;
+    const { name, category, optionName, selectionMode, price } = req.body;
+    const addon = await prisma.productAddon.findUnique({ where: { id } });
+
+    if (!addon) {
+      throw new NotFoundError('Addon not found');
+    }
+
+    const updated = await prisma.productAddon.update({
+      where: { id },
+      data: {
+        ...(name !== undefined && { name }),
+        ...(category !== undefined && { category }),
+        ...(optionName !== undefined && { optionName }),
+        ...(selectionMode !== undefined && { selectionMode }),
+        ...(price !== undefined && { price }),
+      },
+    });
+
+    sendSuccess(res, updated, 'Addon updated successfully');
   }
 
   static async removeProductAddon(req: AuthRequest, res: Response): Promise<void> {

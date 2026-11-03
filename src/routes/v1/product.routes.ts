@@ -130,11 +130,27 @@ router.post(
     body('name').notEmpty().withMessage('Addon name is required'),
     body('category').optional().isString().notEmpty().withMessage('Addon category cannot be empty'),
     body('optionName').optional().isString(),
+    body('selectionMode').optional().isIn(['SINGLE', 'MULTIPLE']).withMessage('Selection mode must be SINGLE or MULTIPLE'),
     body('price').isFloat({ min: 0 }).withMessage('Price must be non-negative number'),
     validateRequest,
   ],
   authorize(['ADMIN']),
   asyncHandler(ProductController.addProductAddon)
+);
+
+router.put(
+  '/addons/:id',
+  [
+    param('id').isString().notEmpty().withMessage('Invalid addon ID'),
+    body('name').optional().isString().notEmpty(),
+    body('category').optional().isString().notEmpty(),
+    body('optionName').optional().isString(),
+    body('selectionMode').optional().isIn(['SINGLE', 'MULTIPLE']).withMessage('Selection mode must be SINGLE or MULTIPLE'),
+    body('price').optional().isFloat({ min: 0 }).withMessage('Price must be non-negative number'),
+    validateRequest,
+  ],
+  authorize(['ADMIN']),
+  asyncHandler(ProductController.updateProductAddon)
 );
 
 router.delete(
