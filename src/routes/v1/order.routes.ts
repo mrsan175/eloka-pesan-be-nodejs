@@ -48,6 +48,15 @@ router.get(
   asyncHandler(OrderController.getOrderById)
 );
 
+router.get(
+  '/:id/status',
+  [
+    param('id').isString().notEmpty().withMessage('Invalid order ID'),
+    validateRequest,
+  ],
+  asyncHandler(OrderController.getPublicOrderStatus)
+);
+
 // Customer and staff order routes require authentication.
 router.use(authenticate);
 

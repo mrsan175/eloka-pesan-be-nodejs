@@ -902,6 +902,15 @@ GET /api/v1/orders/:id
 Authorization: Bearer <accessToken>
 ```
 
+#### 4. Get Public Order Status
+```http
+GET /api/v1/orders/:id/status
+```
+
+Endpoint ini tidak memerlukan login dan hanya mengembalikan informasi status terbatas
+agar pelanggan dapat membuka kembali halaman `/order-status/:id`. Detail pribadi,
+alamat, dan nilai pembayaran tetap tidak dikembalikan.
+
 **Response:**
 ```json
 {

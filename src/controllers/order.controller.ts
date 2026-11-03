@@ -45,6 +45,41 @@ function generateOrderNumber(): string {
 }
 
 export class OrderController {
+  static async getPublicOrderStatus(req: Request, res: Response): Promise<void> {
+    const { id } = req.params;
+    const order = await prisma.order.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        orderNumber: true,
+        status: true,
+        paymentStatus: true,
+        orderType: true,
+        tableNumber: true,
+        pickupTime: true,
+        createdAt: true,
+        updatedAt: true,
+        shop: { select: { id: true, name: true, logo: true } },
+        items: {
+          select: {
+            id: true,
+            quantity: true,
+            notes: true,
+            product: { select: { id: true, name: true, image: true } },
+            addons: {
+              select: {
+                productAddon: { select: { id: true, name: true, category: true } },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!order) throw new NotFoundError('Order not found');
+    sendSuccess(res, order, 'Order status retrieved successfully');
+  }
+
   static async getMyOrders(req: AuthRequest, res: Response): Promise<void> {
     const { page = 1, limit = 10, status } = req.query;
     const skip = (Number(page) - 1) * Number(limit);
