@@ -463,8 +463,8 @@ export class ProductController {
         name,
         addonCategoryId: categoryId,
         category: addonCategory.name,
-        selectionMode: getCategorySelectionMode(addonCategory),
         price: price || 0,
+        order: order || 0,
       },
     });
 
@@ -473,7 +473,7 @@ export class ProductController {
 
   static async updateProductAddon(req: AuthRequest, res: Response): Promise<void> {
     const { id } = req.params;
-    const { name, categoryId, price } = req.body;
+    const { name, categoryId, price, order } = req.body;
     const addon = await prisma.productAddon.findUnique({ where: { id } });
 
     if (!addon) {
@@ -492,9 +492,9 @@ export class ProductController {
         ...(addonCategory && {
           addonCategoryId: addonCategory.id,
           category: addonCategory.name,
-          selectionMode: getCategorySelectionMode(addonCategory),
         }),
         ...(price !== undefined && { price }),
+        ...(order !== undefined && { order }),
       },
     });
 
