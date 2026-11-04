@@ -196,7 +196,27 @@ backend/
 
 ---
 
-## 🗄️ Database Schema
+## 📚 Documentation
+
+### Database Schema
+Lihat dokumentasi lengkap database schema di [DATABASE_SCHEMA.md](./DATABASE_SCHEMA.md)
+
+Dokumen ini mencakup:
+- Entity Relationship Diagram (ERD)
+- Detail setiap table dan kolom
+- Business rules dan validation
+- Index & performance optimization
+- Migration guide
+
+### API Documentation
+Lihat dokumentasi lengkap API di [API_DOCUMENTATION.md](./API_DOCUMENTATION.md)
+
+### Dashboard Documentation
+Lihat dokumentasi dashboard admin/staff di [DASHBOARD_DOCUMENTATION.md](./DASHBOARD_DOCUMENTATION.md)
+
+---
+
+## 🗄️ Database Schema (Quick Reference)
 
 ### Core Models
 

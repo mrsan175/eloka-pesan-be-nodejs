@@ -484,7 +484,10 @@ Content-Type: application/json
   "phone": "+62215559999",
   "email": "info@newcoffee.com",
   "openTime": "08:00",
-  "closeTime": "20:00"
+  "closeTime": "20:00",
+  "latitude": -6.2146,
+  "longitude": 106.8451,
+  "isOpen": true
 }
 ```
 
@@ -499,7 +502,10 @@ Content-Type: application/json
 {
   "name": "Updated Shop Name",
   "openTime": "07:30",
-  "closeTime": "21:00"
+  "closeTime": "21:00",
+  "latitude": -6.2146,
+  "longitude": 106.8451,
+  "isOpen": false
 }
 ```
 
@@ -543,9 +549,11 @@ GET /api/v1/products?page=1&limit=10&categoryId=xxx&isAvailable=true
         "image": null,
         "isAvailable": true,
         "isPopular": true,
+        "stock": null,
         "category": {
           "id": "clxxx...",
-          "name": "Coffee"
+          "name": "Coffee",
+          "shopId": "shop-demo-1"
         }
       }
     ],
@@ -721,7 +729,7 @@ Authorization: Bearer <accessToken>
 
 ---
 
-#### 11. Add Product Option (Admin Only)
+#### 11. Add Product Addon (Admin Only)
 ```http
 POST /api/v1/products/:productId/addons
 Authorization: Bearer <accessToken>
@@ -729,14 +737,36 @@ Content-Type: application/json
 
 {
   "name": "Hot",
-  "category": "Temperature",
-  "price": 0
+  "categoryId": "addon-category-id",
+  "price": 0,
+  "order": 0
 }
 ```
 
 ---
 
-#### 12. Remove Product Option (Admin Only)
+#### 12. Update Product Addon (Admin only)
+```http
+PUT /api/v1/products/addons/:id
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+
+{
+  "name": "Extra Hot",
+  "categoryId": "addon-category-id",
+  "price": 2000,
+  "order": 1,
+  "isAvailable": true
+}
+```
+
+Body menggunakan `name`, `categoryId`, `price`, `order`, dan `isAvailable`.
+`categoryId` mengarah ke kategori addon yang memiliki aturan `SINGLE` atau `MULTIPLE`; aturan tersebut ditetapkan saat admin membuat kategori addon.
+Nama addon langsung berupa pilihan, misalnya `Ice Cream`, `Less Ice`, atau `Extra Sugar`.
+
+---
+
+#### 13. Remove Product Addon (Admin Only)
 ```http
 DELETE /api/v1/products/addons/:id
 Authorization: Bearer <accessToken>
@@ -744,19 +774,7 @@ Authorization: Bearer <accessToken>
 
 ---
 
-#### 13. Edit Product Addon (Admin only)
-```http
-PUT /api/v1/products/addons/:id
-Authorization: ******
-```
-
-Body menggunakan `name`, `categoryId`, dan `price`.
-`categoryId` mengarah ke kategori addon yang memiliki aturan `SINGLE` atau `MULTIPLE`; aturan tersebut ditetapkan saat admin membuat kategori addon.
-Nama addon langsung berupa pilihan, misalnya `Ice Cream`, `Less Ice`, atau `Extra Sugar`.
-
----
-
-#### 14. Toggle Product Option Availability (Admin/Staff assigned)
+#### 14. Toggle Product Addon Availability (Admin/Staff assigned)
 ```http
 POST /api/v1/products/addons/:addonId/shops/:shopId/toggle-availability
 Authorization: Bearer <access_token>
@@ -770,14 +788,6 @@ Status `ProductAddon.isAvailable` bersifat universal untuk produk.
 #### 15. Toggle Product Visibility per Shop (Admin/Staff assigned)
 ```http
 POST /api/v1/products/:productId/shops/:shopId/toggle-visibility
-Authorization: Bearer <accessToken>
-```
-
----
-
-#### Remove Product Option
-```http
-DELETE /api/v1/products/addons/:id
 Authorization: Bearer <accessToken>
 ```
 

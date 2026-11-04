@@ -57,7 +57,7 @@ export class ShopController {
         where,
         include: {
           _count: {
-            select: { categories: true, orders: true },
+            select: { orders: true },
           },
         },
         skip,
@@ -100,7 +100,7 @@ export class ShopController {
         where: { id: { in: nearby.map((item) => item.shopId) } },
         include: {
           _count: {
-            select: { categories: true, orders: true },
+            select: { orders: true },
           },
         },
       });
@@ -127,7 +127,7 @@ export class ShopController {
       where: { latitude: { not: null }, longitude: { not: null } },
       include: {
         _count: {
-          select: { categories: true, orders: true },
+          select: { orders: true },
         },
       },
     });
@@ -151,17 +151,14 @@ export class ShopController {
     const shop = await prisma.shop.findUnique({
       where: { id },
       include: {
-        categories: {
-          where: { isActive: true },
-          orderBy: { order: 'asc' },
+        products: {
+          where: { isVisible: true },
           include: {
-            products: {
-              where: {
-                isAvailable: true,
-                shopProducts: { some: { shopId: id, isVisible: true } },
+            product: {
+              include: {
+                category: true,
+                addons: { where: { isAvailable: true } },
               },
-              orderBy: { order: 'asc' },
-              include: { addons: { where: { isAvailable: true } } },
             },
           },
         },
@@ -179,7 +176,7 @@ export class ShopController {
   }
 
   static async createShop(req: AuthRequest, res: Response): Promise<void> {
-    const { name, description, logo, address, phone, email, openTime, closeTime } = req.body;
+    const { name, description, logo, address, phone, email, openTime, closeTime, latitude, longitude, isOpen } = req.body;
 
     const shop = await prisma.shop.create({
       data: {
@@ -191,6 +188,9 @@ export class ShopController {
         email,
         openTime,
         closeTime,
+        latitude: latitude !== undefined ? Number(latitude) : undefined,
+        longitude: longitude !== undefined ? Number(longitude) : undefined,
+        isOpen: isOpen ?? true,
       },
     });
 
@@ -199,7 +199,7 @@ export class ShopController {
 
   static async updateShop(req: AuthRequest, res: Response): Promise<void> {
     const { id } = req.params;
-    const { name, description, logo, address, phone, email, openTime, closeTime } = req.body;
+    const { name, description, logo, address, phone, email, openTime, closeTime, latitude, longitude, isOpen } = req.body;
 
     await assertShopAccess(req, id);
 
@@ -222,6 +222,9 @@ export class ShopController {
         ...(email !== undefined && { email }),
         ...(openTime && { openTime }),
         ...(closeTime && { closeTime }),
+        ...(latitude !== undefined && { latitude: Number(latitude) }),
+        ...(longitude !== undefined && { longitude: Number(longitude) }),
+        ...(isOpen !== undefined && { isOpen }),
       },
     });
 

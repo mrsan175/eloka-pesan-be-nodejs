@@ -68,7 +68,14 @@ export class OrderController {
             product: { select: { id: true, name: true, image: true } },
             addons: {
               select: {
-                productAddon: { select: { id: true, name: true, category: true } },
+                productAddon: { 
+                  select: { 
+                    id: true, 
+                    name: true, 
+                    category: true,
+                    addonCategory: { select: { id: true, name: true } }
+                  } 
+                },
               },
             },
           },
@@ -334,10 +341,11 @@ export class OrderController {
           (groups[categoryKey] ||= []).push(addon);
           return groups;
         }, {});
-        for (const [category, categoryAddons] of Object.entries(selectedByCategory)) {
-          const selectionMode = categoryAddons[0].addonCategory?.selectionMode || getAddonSelectionMode(category);
+        for (const [_categoryKey, categoryAddons] of Object.entries(selectedByCategory)) {
+          const selectionMode = categoryAddons[0].addonCategory?.selectionMode || getAddonSelectionMode(categoryAddons[0].category);
           if (selectionMode === 'SINGLE' && categoryAddons.length > 1) {
-            throw new BadRequestError(`Only one addon can be selected in category ${category}`);
+            const categoryName = categoryAddons[0].addonCategory?.name || categoryAddons[0].category;
+            throw new BadRequestError(`Only one addon can be selected in category ${categoryName}`);
           }
         }
       }

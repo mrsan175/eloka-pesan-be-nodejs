@@ -2,7 +2,6 @@ import { Request, Response } from 'express';
 import { prisma } from '../config/database';
 import { NotFoundError, BadRequestError } from '../utils/errors';
 import { sendSuccess } from '../utils/response';
-import { getAddonSelectionMode as getCategorySelectionMode } from '../utils/addon-category';
 
 interface AuthRequest extends Request {
   user?: {
@@ -31,7 +30,7 @@ export class ProductController {
     const [products, total] = await Promise.all([
       prisma.product.findMany({
       include: {
-        category: { select: { id: true, name: true, shopId: true } },
+        category: { select: { id: true, name: true } },
         addons: { include: { addonCategory: true }, orderBy: { name: 'asc' } },
       },
       orderBy: [{ categoryId: 'asc' }, { order: 'asc' }, { name: 'asc' }],
@@ -126,7 +125,7 @@ export class ProductController {
         where,
         include: {
           category: {
-            select: { id: true, name: true, shopId: true },
+            select: { id: true, name: true },
           },
           addons: {
             include: { addonCategory: true },
@@ -155,7 +154,7 @@ export class ProductController {
       where: { id },
       include: {
         category: {
-          select: { id: true, name: true, shopId: true },
+          select: { id: true, name: true },
         },
         addons: true,
       },
@@ -230,17 +229,9 @@ export class ProductController {
   static async createCategory(req: AuthRequest, res: Response): Promise<void> {
     const { shopId, name, description, image, order } = req.body;
 
-    const shop = await prisma.shop.findUnique({
-      where: { id: shopId },
-    });
-
-    if (!shop) {
-      throw new NotFoundError('Shop not found');
-    }
-
     const category = await prisma.category.create({
       data: {
-        shopId,
+        shop: { connect: { id: shopId } },
         name,
         description,
         image,
@@ -331,7 +322,7 @@ export class ProductController {
         stock,
         order: order || 0,
         shopProducts: {
-          create: shops.map((shop) => ({ shopId: shop.id })),
+          create: shops.map((shop) => ({ shopId: shop.id, isVisible: true })),
         },
       },
       include: {
@@ -347,7 +338,7 @@ export class ProductController {
 
   static async updateProduct(req: AuthRequest, res: Response): Promise<void> {
     const { id } = req.params;
-    const { name, description, price, image, isAvailable, isPopular, stock, order } = req.body;
+    const { name, description, price, image, isAvailable, isPopular: isPopularUpdate, stock, order } = req.body;
 
     const existingProduct = await prisma.product.findUnique({
       where: { id },
@@ -365,7 +356,7 @@ export class ProductController {
         ...(price !== undefined && { price }),
         ...(image !== undefined && { image }),
         ...(isAvailable !== undefined && { isAvailable }),
-        ...(isPopular !== undefined && { isPopular }),
+        ...(isPopularUpdate !== undefined && { isPopular: isPopularUpdate }),
         ...(stock !== undefined && { stock }),
         ...(order !== undefined && { order }),
       },
@@ -444,7 +435,7 @@ export class ProductController {
 
   static async addProductAddon(req: AuthRequest, res: Response): Promise<void> {
     const { productId } = req.params;
-    const { name, categoryId, price } = req.body;
+    const { name, categoryId, price, order } = req.body;
 
     const product = await prisma.product.findUnique({
       where: { id: productId },
@@ -495,6 +486,7 @@ export class ProductController {
         }),
         ...(price !== undefined && { price }),
         ...(order !== undefined && { order }),
+        ...(req.body.isAvailable !== undefined && { isAvailable: req.body.isAvailable }),
       },
     });
 
