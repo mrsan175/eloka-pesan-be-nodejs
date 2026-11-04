@@ -1,22 +1,28 @@
 import rateLimit from 'express-rate-limit';
 import { config } from '../config/environment';
 
+const tooManyRequests = {
+  success: false,
+  error: 'Too many requests from this IP, please try again later',
+};
+
+// General limiter. Not mounted globally yet; apply per-route as needed.
 export const rateLimiter = rateLimit({
   windowMs: config.rateLimit.windowMs,
-  max: config.rateLimit.maxRequests,
-  message: {
-    success: false,
-    error: 'Too many requests from this IP, please try again later',
-  },
+  limit: config.rateLimit.maxRequests,
+  message: tooManyRequests,
   standardHeaders: true,
   legacyHeaders: false,
 });
 
+// Stricter limiter for authentication endpoints.
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // limit each IP to 5 login requests per windowMs
+  limit: 5, // 5 auth attempts per IP per window
   message: {
     success: false,
     error: 'Too many login attempts, please try again later',
   },
+  standardHeaders: true,
+  legacyHeaders: false,
 });

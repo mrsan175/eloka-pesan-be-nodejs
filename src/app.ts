@@ -5,7 +5,7 @@ import compression from 'compression';
 import morgan from 'morgan';
 import { config } from './config/environment';
 import { errorHandler } from './middleware/errorHandler';
-import { rateLimiter } from './middleware/rateLimiter';
+// Rate limiting is applied per-route in auth.routes.ts
 import routes from './routes/v1';
 
 export const createApp = (): Express => {
@@ -31,8 +31,7 @@ export const createApp = (): Express => {
     })
   );
 
-  // Rate Limiting
-  app.use('/api', rateLimiter);
+  // Rate Limiting (applied per-route in routes)
 
   // Body Parsing Middlewares
   app.use(express.json({ limit: '10mb' }));
